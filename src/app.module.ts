@@ -18,6 +18,7 @@ import { SubscriptionService } from './subscription/subscription.service';
 import { LogModule } from './log/log.module';
 import { HistoryModule } from './history/history.module';
 import { StudentModule } from './student/student.module';
+import { GuardianModule } from './guardian/guardian.module';
 
 
 @Module({
@@ -39,7 +40,8 @@ import { StudentModule } from './student/student.module';
     SubscriptionModule,
     LogModule,
     HistoryModule,
-    StudentModule
+    StudentModule,
+    GuardianModule
   ],
   controllers: [AppController, EventsController],
   providers: [AppService, AppResolver, EventsGateway],
