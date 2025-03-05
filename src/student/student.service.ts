@@ -66,6 +66,7 @@ export class StudentService {
     const totalRecordsCount = await this.studentModel.countDocuments(filter);
     const students = await this.studentModel
       .find(filter)
+      .populate('guardian')
       .skip(skip)
       .limit(limit)
       .exec();
