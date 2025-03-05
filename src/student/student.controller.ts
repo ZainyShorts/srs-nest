@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Delete, Put } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Student } from './schema/student.schema';
@@ -25,4 +25,15 @@ export class StudentController {
   async findOne(@Param('id') id: string): Promise<Student> {
     return this.studentService.findOne(id);
   }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+  return this.studentService.delete(id);
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updateStudentDto: any) {
+    return this.studentService.update(id, updateStudentDto);
+  }
+
 }

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -83,4 +83,41 @@ export class StudentService {
   async findOne(id: string): Promise<Student> {
     return this.studentModel.findById(id).populate('guardian').exec();
   }
+
+  async delete(id: string): Promise<{ message: string }> {
+    const student = await this.studentModel.findById(id).populate("guardian").exec();
+    if (!student) {
+      throw new NotFoundException(`Student with ID "${id}" not found.`);
+    }
+
+  
+    // Delete the associated guardian
+    await this.guardianService.delete(student.guardian._id.toString());
+  
+    // Delete the student
+    await this.studentModel.findByIdAndDelete(id);
+  
+    return { message: 'Student and associated guardian deleted successfully.' };
+  }
+
+  async update(id: string, updateStudentDto: any): Promise<Student> {
+    const student = await this.studentModel.findById(id);
+    if (!student) {
+      throw new NotFoundException(`Student with ID "${id}" not found.`);
+    }
+  
+    const { guardianName, guardianEmail, guardianPhone, ...studentData } = updateStudentDto;
+  
+    // Update Guardian details
+    await this.guardianService.update(student.guardian.toString(), {
+      name: guardianName,
+      email: guardianEmail,
+      phone: guardianPhone,
+    });
+  
+    // Update Student details
+    return this.studentModel.findByIdAndUpdate(id, studentData, { new: true }).populate('guardian');
+  }
+  
+  
 }

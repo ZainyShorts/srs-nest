@@ -42,4 +42,14 @@ export class GuardianService {
   async findOne(id: string): Promise<Guardian> {
     return this.guardianModel.findById(id).exec();
   }
+
+  async delete(id: string): Promise<void> {
+  await this.guardianModel.findByIdAndDelete(id);
+  }
+
+  async update(id: string, updateGuardianDto: any): Promise<void> {
+    await this.guardianModel.findByIdAndUpdate(id, updateGuardianDto);
+  }
+  
+  
 }
