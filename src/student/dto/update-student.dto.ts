@@ -1,6 +1,6 @@
-import { IsEmail, IsNotEmpty, IsString, IsDate, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsDate } from 'class-validator';
 
-export class CreateStudentDto {
+export class UpdateStudentDto {
   @IsNotEmpty()
   @IsString()
   rollNo: string;

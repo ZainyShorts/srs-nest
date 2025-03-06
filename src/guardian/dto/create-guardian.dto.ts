@@ -12,4 +12,18 @@ export class CreateGuardianDto {
   @IsNotEmpty()
   @IsString()
   phone: string;
+
+  @IsNotEmpty()
+  @IsString()
+  relation: string;
+
+  @IsNotEmpty()
+  @IsString()
+  profession: string;
+
+  @IsNotEmpty()
+  @IsString()
+  guardianPhoto: string;
+
+
 }

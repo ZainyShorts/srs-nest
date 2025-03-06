@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { Student } from './schema/student.schema';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { GuardianService } from '../guardian/guardian.service';
+import { UpdateStudentDto } from './dto/update-student.dto';
 
 @Injectable()
 export class StudentService {
@@ -14,7 +15,7 @@ export class StudentService {
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
-    const { guardianName, guardianEmail, guardianPhone, rollNo, email, ...studentData } =
+    const { guardianName, guardianEmail, guardianPhone,relation,guardianPhoto,profession,rollNo, email, ...studentData } =
       createStudentDto;
 
     // Check if rollNo already exists
@@ -40,6 +41,9 @@ export class StudentService {
       name: guardianName,
       email: guardianEmail,
       phone: guardianPhone,
+      guardianPhoto:guardianPhoto,
+      relation:relation,
+      profession:profession
     });
 
     // Hash password (default: 123)
@@ -60,8 +64,8 @@ export class StudentService {
   async findAll(page = 1, limit = 10, rollNo?: string) {
     const skip = (page - 1) * limit;
   
-    // Define filter condition
-    const filter = rollNo ? { rollNo } : {};
+    // Define filter condition with regex for rollNo
+    const filter = rollNo ? { rollNo: { $regex: rollNo, $options: 'i' } } : {};
   
     const totalRecordsCount = await this.studentModel.countDocuments(filter);
     const students = await this.studentModel
@@ -79,6 +83,7 @@ export class StudentService {
       limit,
     };
   }
+  
   
 
   async findOne(id: string): Promise<Student> {
@@ -101,19 +106,22 @@ export class StudentService {
     return { message: 'Student and associated guardian deleted successfully.' };
   }
 
-  async update(id: string, updateStudentDto: any): Promise<Student> {
+  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
     const student = await this.studentModel.findById(id);
     if (!student) {
       throw new NotFoundException(`Student with ID "${id}" not found.`);
     }
   
-    const { guardianName, guardianEmail, guardianPhone, ...studentData } = updateStudentDto;
+    const { guardianName, guardianEmail, guardianPhone,relation,guardianPhoto,profession,  ...studentData } = updateStudentDto;
   
     // Update Guardian details
     await this.guardianService.update(student.guardian.toString(), {
       name: guardianName,
       email: guardianEmail,
       phone: guardianPhone,
+      relation:relation,
+      guardianPhoto:guardianPhoto,
+      profession:profession
     });
   
     // Update Student details

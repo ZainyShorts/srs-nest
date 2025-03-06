@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Query, Delete, Put } from '@nestjs/
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Student } from './schema/student.schema';
+import { UpdateStudentDto } from './dto/update-student.dto';
 
 @Controller('student')
 export class StudentController {
@@ -32,7 +33,7 @@ export class StudentController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateStudentDto: any) {
+  async update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
     return this.studentService.update(id, updateStudentDto);
   }
 

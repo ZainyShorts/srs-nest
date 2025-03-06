@@ -14,6 +14,15 @@ export class Guardian extends Document {
 
   @Prop({ required: true })
   phone: string;
+
+  @Prop({ required: true })
+  relation: string;
+
+  @Prop({ required: true })
+  profession: string;
+
+  @Prop({ required: true })
+  guardianPhoto: string;
 }
 
 export const GuardianSchema = SchemaFactory.createForClass(Guardian);
