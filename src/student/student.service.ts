@@ -65,16 +65,43 @@ export class StudentService {
     return student.save();
   }
 
-  async findAll(page = 1, limit = 10, rollNo?: string) {
+  async findAll(
+    page = 1,
+    limit = 10,
+    rollNo?: string,
+    startDate?: string,
+    endDate?: string,
+    className?: string
+  ) {
     const skip = (page - 1) * limit;
   
-    // Define filter condition with regex for rollNo
-    const filter = rollNo ? { rollNo: { $regex: rollNo, $options: 'i' } } : {};
+    // Define filter conditions
+    const filter: any = {};
+  
+    if (rollNo) {
+      filter.rollNo = rollNo; // Use direct match if rollNo is unique
+    }
+  
+     console.log(className)
+    if (className) {
+      filter.class = className; // Fixed class filtering
+    }
+  
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate); // Greater than or equal to start date
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate); // Less than or equal to end date
+      }
+    }
   
     const totalRecordsCount = await this.studentModel.countDocuments(filter);
     const students = await this.studentModel
       .find(filter)
       .populate('guardian')
+      .sort({ createdAt: -1 }) 
       .skip(skip)
       .limit(limit)
       .exec();
@@ -87,6 +114,7 @@ export class StudentService {
       limit,
     };
   }
+  
   
   async findOne(id: string): Promise<Student> {
     return this.studentModel.findById(id).populate('guardian').exec();
@@ -130,54 +158,6 @@ export class StudentService {
     return this.studentModel.findByIdAndUpdate(id, studentData, { new: true }).populate('guardian');
   }
 
-
-
-  // async importStudents(filePath: string): Promise<any> {
-  //   try {
-  //     // Read Excel file
-  //     const workbook = xlsx.readFile(filePath);
-  //     const sheetName = workbook.SheetNames[0];
-  //     const students: any[] = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-  //     // Check max records limit
-  //     if (students.length > 1000) {
-  //       throw new BadRequestException('Limit exceeded: Maximum 1000 records allowed at a time.');
-  //     }
-
-  //     // Extract rollNo, email, and guardian.email for uniqueness check
-  //     const rollNos = students.map((s) => s.rollNo);
-  //     const emails = students.map((s) => s.email);
-  //     const guardianEmails = students.map((s) => s.guardian?.guardianEmail); // Ensure guardian email is accessed correctly
-
-  //     // Find existing students with matching rollNo, email, or guardian email
-  //     const existingStudents = await this.studentModel.find({
-  //       $or: [{ rollNo: { $in: rollNos } }, { email: { $in: emails } }, { 'guardian.guardianEmail': { $in: guardianEmails } }],
-  //     });
-
-  //     // Create a set of existing entries to filter new valid records
-  //     const existingEntries = new Set(existingStudents.map((s) => `${s.rollNo}|${s.email}|${s.guardian.guardianEmail}`));
-  //     const validStudents = students.filter((s) => !existingEntries.has(`${s.rollNo}|${s.email}|${s.guardian?.guardianEmail}`));
-
-  //     if (validStudents.length === 0) {
-  //       throw new BadRequestException('No valid records to insert. All entries already exist.');
-  //     }
-
-  //     // Insert only valid students
-  //     await this.studentModel.insertMany(validStudents);
-
-  //     return { message: `${validStudents.length} students imported successfully.` };
-  //   } catch (error) {
-  //     console.error('Error importing students:', error);
-  //     return { message: 'Uploading failed' };
-  //   } finally {
-  //     // Delete the uploaded file
-  //     if (filePath) {
-  //       fs.unlink(filePath, (err) => {
-  //         if (err) console.error('Error deleting file:', err);
-  //       });
-  //     }
-  //   }
-  // }
 
 
   async importStudents(filePath: string): Promise<any> {
@@ -269,6 +249,43 @@ export class StudentService {
       }
     }
   }
+
+  async exportFile(
+    limit = 100,
+    startDate?: string,
+    endDate?: string,
+    className?: string
+  ):Promise<Student[]> {
+  
+    // Define filter conditions
+    const filter: any = {};
+  
+    if (className) {
+      filter.class = className; // Fixed class filtering
+    }
+  
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate); // Greater than or equal to start date
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate); // Less than or equal to end date
+      }
+    }
+  
+    return this.studentModel
+      .find(filter)
+      .populate('guardian')
+      .sort({ createdAt: -1 }) 
+      .limit(limit)
+      .exec();
+  
+    
+  }
+
+
+  
   
 
 
