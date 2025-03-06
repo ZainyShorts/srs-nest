@@ -67,11 +67,11 @@ export class CreateStudentDto {
 
   @IsNotEmpty()
   @IsString()
-  relation: string;
+  guardianRelation: string;
 
   @IsNotEmpty()
   @IsString()
-  profession: string;
+  guardianProfession: string;
 
   @IsNotEmpty()
   @IsString()

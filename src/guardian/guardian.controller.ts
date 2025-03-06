@@ -24,4 +24,6 @@ export class GuardianController {
   async findOne(@Param('id') id: string): Promise<Guardian> {
     return this.guardianService.findOne(id);
   }
+
+  
 }

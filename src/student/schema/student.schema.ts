@@ -40,10 +40,10 @@ export class Student extends Document {
   @Prop({ required: true })
   expectedGraduation: string;
 
-  @Prop({ required: true })
+  @Prop({ default:"$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm"})
   password: string; // Hashed password
 
-  @Prop({ type: Types.ObjectId, ref: 'Guardian', required: true }) 
+  @Prop({ type: Types.ObjectId, ref: 'Guardian', required: false }) 
   guardian: Guardian;
 
   @Prop({ required: true })

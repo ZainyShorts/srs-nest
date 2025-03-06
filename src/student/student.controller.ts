@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Query, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Delete, Put, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Student } from './schema/student.schema';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptionsForXlxs, UploadedFileType } from 'utils/multer.config';
 
 @Controller('student')
 export class StudentController {
@@ -35,6 +37,15 @@ export class StudentController {
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
     return this.studentService.update(id, updateStudentDto);
+  }
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file', multerOptionsForXlxs))
+  async importStudents(@UploadedFile() file: UploadedFileType,) {
+    if (!file) {
+      throw new Error('File is required');
+    }
+    return this.studentService.importStudents(file.path);
   }
 
 }

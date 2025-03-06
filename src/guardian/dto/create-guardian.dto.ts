@@ -3,27 +3,27 @@ import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 export class CreateGuardianDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  guardianName: string;
 
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  guardianEmail: string;
 
   @IsNotEmpty()
   @IsString()
-  phone: string;
-
-  @IsNotEmpty()
-  @IsString()
-  relation: string;
-
-  @IsNotEmpty()
-  @IsString()
-  profession: string;
+  guardianPhone: string;
 
   @IsNotEmpty()
   @IsString()
   guardianPhoto: string;
+
+  @IsNotEmpty()
+  @IsString()
+  guardianRelation: string;
+
+  @IsNotEmpty()
+  @IsString()
+  guardianProfession: string;
 
 
 }

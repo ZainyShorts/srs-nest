@@ -7,19 +7,19 @@ export class Guardian extends Document {
   name: string;
 
   @Prop({ required: true, unique: true })
-  email: string;
+  guardianEmail: string;
 
-  @Prop({ required: true })
+  @Prop({ default:"$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm"})
   password: string; // Hashed password
 
   @Prop({ required: true })
-  phone: string;
+  guardianPhone: string;
 
   @Prop({ required: true })
-  relation: string;
+  guardianRelation: string;
 
   @Prop({ required: true })
-  profession: string;
+  guardianProfession: string;
 
   @Prop({ required: true })
   guardianPhoto: string;
