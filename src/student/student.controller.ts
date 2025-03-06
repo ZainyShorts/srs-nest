@@ -32,20 +32,7 @@ export class StudentController {
     return this.studentService.findOne(id);
   }
 
-  // @Get('export')
-  // async exportData(
-  // @Query('limit') limit: number = 10,
-  // @Query('startDate') startDate?:string,
-  // @Query('endDate') endDate?:string,
-  // @Query('className') className?:string): Promise<Student[]> {
-  //   return this.studentService.exportFile(limit,startDate,endDate,className);
-  // }
-
-  @Get('export')
-async exportStudents(@Query() query) {
-    return this.studentService.exportFile(query.limit, query.startDate, query.endDate, query.className);
-}
-
+  
 
   @Delete(':id')
   async delete(@Param('id') id: string) {

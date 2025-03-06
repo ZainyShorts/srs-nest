@@ -250,39 +250,7 @@ export class StudentService {
     }
   }
 
-  async exportFile(
-    limit = 100,
-    startDate?: string,
-    endDate?: string,
-    className?: string
-  ):Promise<Student[]> {
   
-    // Define filter conditions
-    const filter: any = {};
-  
-    if (className) {
-      filter.class = className; // Fixed class filtering
-    }
-  
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) {
-        filter.createdAt.$gte = new Date(startDate); // Greater than or equal to start date
-      }
-      if (endDate) {
-        filter.createdAt.$lte = new Date(endDate); // Less than or equal to end date
-      }
-    }
-  
-    return this.studentModel
-      .find(filter)
-      .populate('guardian')
-      .sort({ createdAt: -1 }) 
-      .limit(limit)
-      .exec();
-  
-    
-  }
 
 
   
