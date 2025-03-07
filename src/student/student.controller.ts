@@ -5,13 +5,14 @@ import { Student } from './schema/student.schema';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptionsForXlxs, UploadedFileType } from 'utils/multer.config';
+import { ResponseDto } from 'src/dto/response.dto';
 
 @Controller('student')
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
   @Post("add")
-  async create(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
+  async create(@Body() createStudentDto: CreateStudentDto): Promise<Student | ResponseDto> {
     return this.studentService.create(createStudentDto);
   }
 

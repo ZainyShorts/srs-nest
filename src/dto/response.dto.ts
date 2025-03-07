@@ -7,12 +7,12 @@ export class ResponseDto {
   @Field(()=> Boolean)
   @IsNotEmpty()
   @IsBoolean()
-  success: boolean;
+  success?: boolean;
 
   @Field(()=> Int)
   @IsNotEmpty()
   @IsNumber()
-  statusCode: number;
+  status: number;
 
   @IsOptional()
   data?: any; // If you want to validate `assistant`, you can replace `any` with a proper type or class.

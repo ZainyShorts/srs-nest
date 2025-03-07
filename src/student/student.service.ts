@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +9,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import { Guardian } from '../guardian/schema/guardian.schema';
+import { ResponseDto } from 'src/dto/response.dto';
 
 @Injectable()
 export class StudentService {
@@ -18,31 +19,42 @@ export class StudentService {
     @InjectModel(Guardian.name) private guardianModel: Model<Guardian>
   ) {}
 
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
+  async create(createStudentDto: CreateStudentDto): Promise<Student | ResponseDto> {
     const { guardianName, guardianEmail, guardianPhone,guardianRelation,guardianPhoto,guardianProfession,rollNo, email, ...studentData } =
       createStudentDto;
 
     if(guardianEmail === email){
-      throw new ConflictException(`The student's email cannot be the same as the guardian's email.`);
+      return {
+        status:HttpStatus.CONFLICT,
+        msg:`The student's email cannot be the same as the guardian's email.`,
+      }
     }
 
     // Check if rollNo already exists
     const existingStudentByRollNo = await this.studentModel.findOne({ rollNo });
     if (existingStudentByRollNo) {
-      console.log(existingStudentByRollNo)
-      throw new ConflictException(`Roll number "${rollNo}" is already taken by student ${existingStudentByRollNo.firstName} ${existingStudentByRollNo.lastName}.`);
+      return {
+        status:HttpStatus.CONFLICT,
+        msg:`Roll number "${rollNo}" is already taken by student ${existingStudentByRollNo.firstName} ${existingStudentByRollNo.lastName}.`,
+      }
     }
 
     // Check if student email already exists
     const existingStudentByEmail = await this.studentModel.findOne({ email });
     if (existingStudentByEmail) {
-      throw new ConflictException(`Student email "${email}" is already registered with ${existingStudentByEmail.firstName} ${existingStudentByEmail.lastName}.`);
+      return {
+        status:HttpStatus.CONFLICT,
+        msg:`Student email "${email}" is already registered with ${existingStudentByEmail.firstName} ${existingStudentByEmail.lastName}.`,
+      }
     }
 
     // Check if guardian email already exists
     const existingGuardianByEmail = await this.guardianModel.findOne({guardianEmail});
     if (existingGuardianByEmail) {
-      throw new ConflictException(`Guardian email "${guardianEmail}" is already registered`);
+      return {
+        status:HttpStatus.CONFLICT,
+        msg:`Guardian email "${guardianEmail}" is already registered`,
+      }
     }
 
     // Create Guardian First
@@ -141,7 +153,7 @@ export class StudentService {
     return { message: 'Student and associated guardian deleted successfully.' };
   }
 
-  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student | ResponseDto> {
     const student = await this.studentModel.findById(id);
     if (!student) {
       throw new NotFoundException(`Student with ID "${id}" not found.`);
@@ -198,21 +210,26 @@ export class StudentService {
             const rowNumber = i + 2; // Adjusting for header row
 
             if (email === guardianEmail) {
-                throw new ConflictException(`Row ${rowNumber}: Student email "${email}" cannot be the same as guardian email.`);
+              return {
+                status:HttpStatus.CONFLICT,
+                msg:`Row ${rowNumber}: Student email "${email}" cannot be the same as guardian email.`,
+              }
             }
 
             if (existingStudentsByRollNo.has(rollNo)) {
                 const existingStudent = existingStudentsByRollNo.get(rollNo);
-                throw new ConflictException(
-                    `Row ${rowNumber}: Roll number "${rollNo}" is already taken by student ${existingStudent.firstName} ${existingStudent.lastName}.`
-                );
+                return {
+                  status:HttpStatus.CONFLICT,
+                  msg:`Row ${rowNumber}: Roll number "${rollNo}" is already taken by student ${existingStudent.firstName} ${existingStudent.lastName}.`,
+                }
             }
 
             if (existingStudentsByEmail.has(email)) {
                 const existingStudent = existingStudentsByEmail.get(email);
-                throw new ConflictException(
-                    `Row ${rowNumber}: Student email "${email}" is already registered with ${existingStudent.firstName} ${existingStudent.lastName}.`
-                );
+                return {
+                  status:HttpStatus.CONFLICT,
+                  msg:`Row ${rowNumber}: Student email "${email}" is already registered with ${existingStudent.firstName} ${existingStudent.lastName}.`,
+                }
             }
 
             let guardian;
@@ -247,7 +264,10 @@ export class StudentService {
 
         // ✅ Ensure proper error handling
         if (error instanceof ConflictException) {
-            throw new ConflictException(error.message); // Return proper 409 Conflict response
+            return {
+              status:HttpStatus.CONFLICT,
+              msg:error.message,
+            }
         }
 
         throw new BadRequestException(error.message); // Return proper 400 Bad Request response

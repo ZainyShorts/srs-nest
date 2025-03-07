@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
@@ -6,16 +6,20 @@ import { Teacher } from './schema/schema.teacher';
 import { UpdateTeacherDto } from './dto/update-teaacher.dto';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
+import { ResponseDto } from 'src/dto/response.dto';
 
 @Injectable()
 export class TeacherService {
   constructor(@InjectModel(Teacher.name) private teacherModel: Model<Teacher>) {}
 
-  async addTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
+  async addTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher | ResponseDto> {
     const existingTeacher = await this.teacherModel.findOne({ email: createTeacherDto.email });
 
     if (existingTeacher) {
-      throw new ConflictException('Email already exists');
+      return {
+        status:HttpStatus.CONFLICT,
+        msg:"Email already exists",
+      }
     }
 
     const newTeacher = new this.teacherModel(createTeacherDto);
@@ -28,13 +32,14 @@ export class TeacherService {
       throw new NotFoundException('Teacher not found');
     }
 
+    // No need now --
     // Check if email is being updated and already exists
-    if (updateTeacherDto.email && updateTeacherDto.email !== existingTeacher.email) {
-      const emailExists = await this.teacherModel.findOne({ email: updateTeacherDto.email });
-      if (emailExists) {
-        throw new ConflictException('Email already exists');
-      }
-    }
+    // if (updateTeacherDto.email && updateTeacherDto.email !== existingTeacher.email) {
+    //   const emailExists = await this.teacherModel.findOne({ email: updateTeacherDto.email });
+    //   if (emailExists) {
+    //     throw new ConflictException('Email already exists');
+    //   }
+    // }
 
     return this.teacherModel.findByIdAndUpdate(id, updateTeacherDto, { new: true });
   }
@@ -60,7 +65,8 @@ export class TeacherService {
     limit = 10,
     startDate?: string,
     endDate?: string,
-    department?: string
+    department?: string,
+    email?:string
   ) {
     const skip = (page - 1) * limit;
   
@@ -72,6 +78,11 @@ export class TeacherService {
     if (department) {
       filter.department = department; // Fixed class filtering
     }
+
+    if (email) {
+      filter.email = email; // Fixed class filtering
+    }
+
   
     if (startDate || endDate) {
       filter.createdAt = {};
@@ -107,7 +118,10 @@ export class TeacherService {
         const teachers: any[] = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
         if (teachers.length > 1000) {
-            throw new BadRequestException('Limit exceeded: Maximum 1000 records allowed at a time.');
+          return {
+            status:HttpStatus.CONFLICT,
+            msg:"Limit exceeded: Maximum 1000 records allowed at a time.",
+          }
         }
 
         const emails = teachers.map((s) => s.email);
@@ -127,16 +141,20 @@ export class TeacherService {
 
             if (existingTeachersByEmail.has(email)) {
                 const existingStudent = existingTeachersByEmail.get(email);
-                throw new ConflictException(
-                    `Row ${rowNumber}: Teacher email "${email}" is already registered with ${existingStudent.firstName} ${existingStudent.lastName}.`
-                );
+                return {
+                  status:HttpStatus.CONFLICT,
+                  msg:`Row ${rowNumber}: Teacher email "${email}" is already registered with ${existingStudent.firstName} ${existingStudent.lastName}.`,
+                }
             }
 
             validTeachers.push(student);
         }
 
         if (validTeachers.length === 0) {
-            throw new BadRequestException('No valid records to insert. All entries already exist.');
+          return {
+            status:HttpStatus.CONFLICT,
+            msg:`No valid records to insert. All entries already exist.`,
+          }
         }
 
         await this.teacherModel.insertMany(validTeachers);
@@ -147,10 +165,16 @@ export class TeacherService {
 
         // ✅ Ensure proper error handling
         if (error instanceof ConflictException) {
-            throw new ConflictException(error.message); // Return proper 409 Conflict response
+            return {
+              status:HttpStatus.CONFLICT,
+              msg:error.message,
+            }
         }
 
-        throw new BadRequestException(error.message); // Return proper 400 Bad Request response
+        return {
+          status:HttpStatus.CONFLICT,
+          msg:error.message,
+        }
     } finally {
         if (filePath) {
             fs.unlink(filePath, (err) => {

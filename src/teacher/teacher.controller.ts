@@ -5,6 +5,7 @@ import { Teacher } from './schema/schema.teacher';
 import { UpdateTeacherDto } from './dto/update-teaacher.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptionsForXlxs, UploadedFileType } from 'utils/multer.config';
+import { ResponseDto } from 'src/dto/response.dto';
 
 @Controller('teachers')
 export class TeacherController {
@@ -17,13 +18,14 @@ export class TeacherController {
     @Query('limit') limit: number = 10,
     @Query('startDate') startDate?:string,
     @Query('endDate') endDate?:string,
-    @Query('department') department?:string
+    @Query('department') department?:string,
+    @Query('email') email?:string
   ) {
-    return this.teacherService.findAll(Number(page), Number(limit),startDate,endDate,department);
+    return this.teacherService.findAll(Number(page), Number(limit),startDate,endDate,department,email);
   }
 
   @Post('add')
-  async addTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher> {
+  async addTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher | ResponseDto> {
     return this.teacherService.addTeacher(createTeacherDto);
   }
 
