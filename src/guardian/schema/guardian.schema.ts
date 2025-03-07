@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 @Schema({ timestamps: true })
 export class Guardian extends Document {
   @Prop({ required: true })
-  name: string;
+  guardianName: string;
 
   @Prop({ required: true, unique: true })
   guardianEmail: string;

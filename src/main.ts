@@ -12,7 +12,6 @@ async function bootstrap() {
   ensureUploadsFolder()
   const app = await NestFactory.create(AppModule);
   app.enableCors()
-  app.use('/subscription/webhook', raw({ type: 'application/json' }));
 
   // 🟢 Regular body parser for other routes
   app.use(json());

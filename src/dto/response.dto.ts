@@ -1,6 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Quiz } from 'src/quiz/schema/quiz.schema';
 
 @ObjectType()
 export class ResponseDto {
