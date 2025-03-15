@@ -6,6 +6,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { StudentModule } from './student/student.module';
 import { GuardianModule } from './guardian/guardian.module';
 import { TeacherModule } from './teacher/teacher.module';
+import { CourseModule } from './course/course.module';
+import { ScheduleModule } from './schedule/schedule.module';
+import { AttendanceModule } from './attendance/attendance.module';
 
 
 @Module({
@@ -16,7 +19,10 @@ import { TeacherModule } from './teacher/teacher.module';
     MongooseModule.forRoot(process.env.MONGODB_CONNECTION_URL),
     StudentModule,
     GuardianModule,
-    TeacherModule
+    TeacherModule,
+    CourseModule,
+    ScheduleModule,
+    AttendanceModule
   ],
   controllers: [AppController],
   providers: [AppService],
