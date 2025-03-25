@@ -85,8 +85,18 @@ export class CourseService {
   }
   
   async update(id: string, updateCourseDto: UpdateCourseDto): Promise<Course> {
+    
+
+    const existingCourseByName = await this.courseModel.findOne({ courseName: updateCourseDto.courseName }).exec();
+
+    if (existingCourseByName) {
+      throw new ConflictException('Course name already exists');
+    }
+
     const updatedCourse = await this.courseModel.findByIdAndUpdate(id, updateCourseDto, { new: true }).exec();
-    if (!updatedCourse) throw new NotFoundException('Course not found');
+    
+    if (!updatedCourse) throw new BadRequestException('Course not found');
+
     return updatedCourse;
   }
 

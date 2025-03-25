@@ -47,7 +47,8 @@ export class ActivityService {
     // Fetch paginated data
     const data = await this.activityModel
       .find(filter)
-      .skip((page - 1) * limit)
+      .sort({createdAt:-1})
+      // .skip((page - 1) * limit)
       .limit(limit)
       .exec();
   
