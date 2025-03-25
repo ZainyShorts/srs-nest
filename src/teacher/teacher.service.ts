@@ -13,12 +13,12 @@ export class TeacherService {
   constructor(@InjectModel(Teacher.name) private teacherModel: Model<Teacher>) {}
 
   async addTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher | ResponseDto> {
-    const existingTeacher = await this.teacherModel.findOne({ email: createTeacherDto.email });
+    const existingTeacher = await this.teacherModel.findOne({ email: createTeacherDto.email  });
 
     if (existingTeacher) {
       return {
         status:HttpStatus.CONFLICT,
-        msg:"Email already exists",
+        msg:`Teacher with this ${createTeacherDto.email} already exists`,
       }
     }
 

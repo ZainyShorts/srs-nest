@@ -5,11 +5,15 @@ import { Course, CourseDocument } from './schema/course.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto'; 
 import { isValidObjectId } from 'mongoose'; 
+import { Schedule, ScheduleDocument } from 'src/schedule/schema/schedule.schema';
 
 
 @Injectable()
 export class CourseService {
-  constructor(@InjectModel(Course.name) private courseModel: Model<CourseDocument>) {}
+  constructor(
+    @InjectModel(Course.name) private courseModel: Model<CourseDocument>,
+    @InjectModel(Schedule.name) private courseSchedule: Model<ScheduleDocument>
+    ) {}
 
   async create(createCourseDto: CreateCourseDto): Promise<Course> {
     const { courseName, courseCode, departmentId, ...rest } = createCourseDto;
@@ -87,8 +91,26 @@ export class CourseService {
   }
 
   async remove(id: string): Promise<Course> {
-    const deletedCourse = await this.courseModel.findByIdAndDelete(id).exec();
-    if (!deletedCourse) throw new NotFoundException('Course not found');
-    return deletedCourse;
+    const session = await this.courseModel.db.startSession();
+    session.startTransaction();
+    try {
+      const deletedCourse = await this.courseModel.findByIdAndDelete(id, { session });
+      if (!deletedCourse) {
+        throw new NotFoundException('Course not found');
+      }
+
+      await this.courseSchedule.deleteMany({ courseId: id }, { session });
+
+      // ✅ Commit the transaction if everything is successful
+      await session.commitTransaction();
+      session.endSession();
+
+      return deletedCourse;
+    } catch (error) {
+      // ❌ Rollback the transaction if anything fails
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   }
 }

@@ -50,7 +50,7 @@ export class Student extends Document {
   profilePhoto: string; // Store URL of the photo
 
   @Prop({ required: false })
-  transcripts: string; // Store transcript as a file URL or text
+  transcripts: string[]; // Store transcript as a file URL or text
 
   @Prop({ required: false })
   iipFlag: string; // IIP Flag information

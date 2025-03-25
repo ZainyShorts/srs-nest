@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -41,21 +41,17 @@ export class DepartmentService {
   }
 
   async remove(id: string): Promise<Department> {
+    
     const dp: any = await this.departmentModel.findOne({ _id: id }); // Await here
-    if (!dp) {
+    if (dp == null) {
         console.log(`Department with ID ${id} not found`);
-        throw new Error('Department not found');
+        throw new BadRequestException('Department not found');
     }
 
-    console.log('Department:', dp);
-
-    const course: any = await this.courseModel.findById({ departmentId: dp._id.toString() }); 
-    console.log('courseId',course)
-    if (course) { 
-        await this.scheduleModel.deleteMany({ courseId: course._id });
+    const course: any = await this.courseModel.find({ departmentId: dp._id }); 
+    if (course.length > 0) { 
+      throw new BadRequestException('Cannot delete. This department is linked to existing courses.');
     }
-
-    await this.courseModel.deleteMany({ departmentId: id });
 
     return this.departmentModel.findByIdAndDelete(id);
   }

@@ -14,7 +14,7 @@ export class Teacher {
   @Prop({ required: true})
   gender: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   phone: string;
 
   @Prop({ required: true, unique: true })

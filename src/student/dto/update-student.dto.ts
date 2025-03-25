@@ -79,7 +79,7 @@ export class UpdateStudentDto {
 
   @IsOptional()
   @IsString()
-  transcripts?: string; // Can store file URL or text
+  transcripts?: string[]; // Can store file URL or text
 
   @IsOptional()
   @IsString()
