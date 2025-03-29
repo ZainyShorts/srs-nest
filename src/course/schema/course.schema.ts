@@ -30,6 +30,9 @@ export class Course {
   @Prop({ required: true, default:false })
   special: boolean;
 
+  @Prop({ required: true, enum: ['Full Year', 'Semester', 'Quarter'], default: 'Semester' })
+  duration: string;
+
 
 }
 

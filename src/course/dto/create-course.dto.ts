@@ -33,6 +33,11 @@ export class CreateCourseDto {
   @IsBoolean()
   special: boolean;
 
+  @IsNotEmpty()
+  @IsString()
+  duration: string;
+  
+
  
 }
 

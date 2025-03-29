@@ -11,6 +11,7 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { DepartmentModule } from './department/department.module';
 import { ActivityModule } from './activity/activity.module';
+import { ClubModule } from './club/club.module';
 
 
 @Module({
@@ -26,7 +27,8 @@ import { ActivityModule } from './activity/activity.module';
     ScheduleModule,
     AttendanceModule,
     DepartmentModule,
-    ActivityModule
+    ActivityModule,
+    ClubModule
   ],
   controllers: [AppController],
   providers: [AppService],
