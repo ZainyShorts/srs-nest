@@ -1,30 +1,42 @@
-import { ConflictException, Injectable, NotFoundException , BadRequestException , InternalServerErrorException  } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from './schema/course.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto'; 
-import { isValidObjectId } from 'mongoose'; 
-import { Schedule, ScheduleDocument } from 'src/schedule/schema/schedule.schema';
-
+import { UpdateCourseDto } from './dto/update-course.dto';
+import { isValidObjectId } from 'mongoose';
+import {
+  Schedule,
+  ScheduleDocument,
+} from 'src/schedule/schema/schedule.schema';
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectModel(Course.name) private courseModel: Model<CourseDocument>,
-    @InjectModel(Schedule.name) private courseSchedule: Model<ScheduleDocument>
-    ) {}
+    @InjectModel(Schedule.name) private courseSchedule: Model<ScheduleDocument>,
+  ) {}
 
   async create(createCourseDto: CreateCourseDto): Promise<Course> {
     const { courseName, courseCode, departmentId, ...rest } = createCourseDto;
 
-    const existingCourseByName = await this.courseModel.findOne({ courseName }).exec();
+    const existingCourseByName = await this.courseModel
+      .findOne({ courseName })
+      .exec();
     if (existingCourseByName) {
       throw new ConflictException('Course name already exists');
     }
-  
-    const existingCourseByCode = await this.courseModel.findOne({ courseCode }).exec();
-    if (existingCourseByCode) { 
+
+    const existingCourseByCode = await this.courseModel
+      .findOne({ courseCode })
+      .exec();
+    if (existingCourseByCode) {
       throw new ConflictException('Course code already exists');
     }
 
@@ -51,65 +63,68 @@ export class CourseService {
   async findAll(
     coursename?: string,
     active?: boolean,
-    special?: boolean
-    ): Promise<Course[]> {
-      
-      const filter: any = {};
+    special?: boolean,
+  ): Promise<Course[]> {
+    const filter: any = {};
 
-      if (coursename) {
-        filter.courseName = { $regex: coursename, $options: "i" };
-      }
-    
-      if (active !== undefined) {
-        filter.active = active;
-      }
-    
-      if (special !== undefined) {
-        filter.special = special;
-      }
-    
-    
-             
-    return this.courseModel
-        .find(filter)
-        .populate('departmentId')
-        .exec();
-}
+    if (coursename) {
+      filter.courseName = { $regex: coursename, $options: 'i' };
+    }
 
+    if (active !== undefined) {
+      filter.active = active;
+    }
 
+    if (special !== undefined) {
+      filter.special = special;
+    }
+
+    return this.courseModel.find(filter).populate('departmentId').exec();
+  }
 
   async findOne(id: string): Promise<Course> {
-    const course = await this.courseModel.findById(id).populate('departmentId').exec();
+    const course = await this.courseModel
+      .findById(id)
+      .populate('departmentId')
+      .exec();
     if (!course) throw new NotFoundException('Course not found');
     return course;
   }
-  
+
   async update(id: string, updateCourseDto: UpdateCourseDto): Promise<Course> {
     // Find the existing course by ID
     const existingCourse = await this.courseModel.findById(id).exec();
     if (!existingCourse) {
-        throw new BadRequestException('Course not found');
+      throw new BadRequestException('Course not found');
     }
 
     // Check if courseName is being updated
-    if (updateCourseDto.courseName && updateCourseDto.courseName !== existingCourse.courseName) {
-        const existingCourseByName = await this.courseModel.findOne({ courseName: updateCourseDto.courseName }).exec();
-        if (existingCourseByName) {
-            throw new ConflictException('Course name already exists');
-        }
+    if (
+      updateCourseDto.courseName &&
+      updateCourseDto.courseName !== existingCourse.courseName
+    ) {
+      const existingCourseByName = await this.courseModel
+        .findOne({ courseName: updateCourseDto.courseName })
+        .exec();
+      if (existingCourseByName) {
+        throw new ConflictException('Course name already exists');
+      }
     }
 
     // Update the course
-    const updatedCourse = await this.courseModel.findByIdAndUpdate(id, updateCourseDto, { new: true }).exec();
+    const updatedCourse = await this.courseModel
+      .findByIdAndUpdate(id, updateCourseDto, { new: true })
+      .exec();
     return updatedCourse;
-}
-
+  }
 
   async remove(id: string): Promise<Course> {
     const session = await this.courseModel.db.startSession();
     session.startTransaction();
     try {
-      const deletedCourse = await this.courseModel.findByIdAndDelete(id, { session });
+      const deletedCourse = await this.courseModel.findByIdAndDelete(id, {
+        session,
+      });
       if (!deletedCourse) {
         throw new NotFoundException('Course not found');
       }

@@ -14,14 +14,41 @@ export class Attendance {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Course', required: true })
   courseId: Course;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Student', required: true })
-  studentId: Student;
-
   @Prop({ required: true })
   date: string; // Example: "2024-03-15"
 
-  @Prop({ required: true, enum: ['Present', 'Absent', 'Late'], default: 'Present' })
-  status: string;
+  @Prop({ required: true })
+  class: string; // Example: "2024-03-15"
+
+  @Prop({ required: true })
+  section: string; // Example: "2024-03-15"
+
+  @Prop({
+    type: [
+      {
+        _id: {
+          type: MongooseSchema.Types.ObjectId,
+          ref: 'Student',
+          required: true,
+        },
+        studentId: { type: String, required: true },
+        studentName: { type: String, required: true },
+        attendance: {
+          type: String,
+          enum: ['Present', 'Absent', 'Late', 'Excused'],
+          default: 'Present',
+        },
+        note: { type: String },
+      },
+    ],
+    required: true,
+  })
+  students: {
+    studentId: Student;
+    studentName: string;
+    attendance: string;
+    note?: string;
+  }[];
 }
 
 export const AttendanceSchema = SchemaFactory.createForClass(Attendance);

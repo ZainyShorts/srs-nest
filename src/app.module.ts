@@ -12,6 +12,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { DepartmentModule } from './department/department.module';
 import { ActivityModule } from './activity/activity.module';
 import { ClubModule } from './club/club.module';
+import { GlobalModule } from './global/global.module';
 
 
 @Module({
@@ -28,7 +29,8 @@ import { ClubModule } from './club/club.module';
     AttendanceModule,
     DepartmentModule,
     ActivityModule,
-    ClubModule
+    ClubModule,
+    GlobalModule
   ],
   controllers: [AppController],
   providers: [AppService],
