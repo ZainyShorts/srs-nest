@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Grade, GradeDocument } from './schema/schema.garde';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -13,8 +18,25 @@ export class GradeService {
   ) {}
 
   async create(createDtos: CreateGradeDto[]): Promise<any> {
-    const createdGrades = await this.GradeModel.insertMany(createDtos);
-    return createdGrades;
+    try {
+      const exists = await this.GradeModel.findOne({
+        class: createDtos[0].class,
+        section: createDtos[0].section,
+        courseId: createDtos[0].courseId,
+      });
+
+      if (exists) {
+        throw new BadRequestException('Grade already exists');
+      }
+
+      const createdGrades = await this.GradeModel.insertMany(createDtos);
+      return createdGrades;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create grade(s)');
+    }
   }
 
   async findAll(
@@ -23,27 +45,19 @@ export class GradeService {
     courseId?: string,
     teacherId?: string,
   ): Promise<Grade[]> {
-    // Build filter object
-    const filter: any = {};
+    try {
+      const filter: any = {};
 
-    if (className) {
-      filter.class = className;
+      if (className) filter.class = className;
+      if (section) filter.section = section;
+      if (courseId) filter.courseId = courseId;
+      if (teacherId) filter.teacherId = teacherId;
+
+      return this.GradeModel.find(filter).populate(['studentId']).exec();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve grades');
     }
-
-    if (section) {
-      filter.section = section;
-    }
-
-    if (courseId) {
-      filter.courseId = courseId;
-    }
-
-    if (teacherId) {
-      filter.teacherId = teacherId;
-    }
-
-    // Query with populated fields and filters applied
-    return this.GradeModel.find(filter).populate(['studentId']).exec();
   }
 
   async findOne(
@@ -53,45 +67,50 @@ export class GradeService {
     courseId?: string,
     teacherId?: string,
   ): Promise<Grade> {
-    // Build filter object for additional parameters
-    const filter: any = { _id: id };
+    try {
+      const filter: any = { _id: id };
+      if (className) filter.class = className;
+      if (section) filter.section = section;
+      if (courseId) filter.courseId = courseId;
+      if (teacherId) filter.teacherId = teacherId;
 
-    if (className) {
-      filter.class = className;
+      const grade = await this.GradeModel.findOne(filter)
+        .populate(['teacherId', 'courseId', 'studentId'])
+        .exec();
+
+      if (!grade) throw new NotFoundException('Grade not found');
+
+      return grade;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to retrieve grade');
     }
-
-    if (section) {
-      filter.section = section;
-    }
-
-    if (courseId) {
-      filter.courseId = courseId;
-    }
-
-    if (teacherId) {
-      filter.teacherId = teacherId;
-    }
-
-    // Query the database with the ID and filter applied
-    return this.GradeModel.findOne(filter)
-      .populate(['teacherId', 'courseId', 'studentId'])
-      .exec();
   }
 
   async updateMany(grades: UpdateGradeDto[]): Promise<Grade[]> {
-    const updatedGrades: Grade[] = [];
+    try {
+      const updatedGrades: Grade[] = [];
 
-    for (const grade of grades) {
-      const { _id, ...updateData } = grade;
-      const updated = await this.GradeModel.findByIdAndUpdate(_id, updateData, {
-        new: true,
-      });
-      if (updated) {
-        updatedGrades.push(updated);
+      for (const grade of grades) {
+        const { _id, ...updateData } = grade;
+        const updated = await this.GradeModel.findByIdAndUpdate(
+          _id,
+          updateData,
+          { new: true },
+        );
+
+        if (updated) {
+          updatedGrades.push(updated);
+        }
       }
-    }
 
-    return updatedGrades;
+      return updatedGrades;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to update grades');
+    }
   }
 
   async remove(
@@ -100,24 +119,17 @@ export class GradeService {
     courseId?: string,
     teacherId?: string,
   ): Promise<any> {
-    const filter: any = {};
+    try {
+      const filter: any = {};
+      if (className) filter.class = className;
+      if (section) filter.section = section;
+      if (courseId) filter.courseId = courseId;
+      if (teacherId) filter.teacherId = teacherId;
 
-    if (className) {
-      filter.class = className;
+      return this.GradeModel.deleteMany(filter).exec();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to delete grades');
     }
-
-    if (section) {
-      filter.section = section;
-    }
-
-    if (courseId) {
-      filter.courseId = courseId;
-    }
-
-    if (teacherId) {
-      filter.teacherId = teacherId;
-    }
-
-    return this.GradeModel.deleteMany(filter).exec();
   }
 }
