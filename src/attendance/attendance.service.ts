@@ -68,19 +68,12 @@ export class AttendanceService {
         throw new BadRequestException('Missing required parameters');
       }
 
-      const startDate = new Date(date);
-      const endDate = new Date(date);
-      endDate.setDate(endDate.getDate() + 1); // Next day to make it exclusive
-
       const filters: any = {
         teacherId,
         courseId,
         class: room,
         section,
-        createdAt: {
-          $gte: startDate,
-          $lt: endDate,
-        },
+        date,
       };
 
       let result: any = await this.attendanceModel.findOne(filters).exec();

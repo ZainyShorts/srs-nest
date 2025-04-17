@@ -13,6 +13,7 @@ import { DepartmentModule } from './department/department.module';
 import { ActivityModule } from './activity/activity.module';
 import { ClubModule } from './club/club.module';
 import { GlobalModule } from './global/global.module';
+import { GradeModule } from './grade/grade.module';
 
 
 @Module({
@@ -30,7 +31,8 @@ import { GlobalModule } from './global/global.module';
     DepartmentModule,
     ActivityModule,
     ClubModule,
-    GlobalModule
+    GlobalModule,
+    GradeModule
   ],
   controllers: [AppController],
   providers: [AppService],
