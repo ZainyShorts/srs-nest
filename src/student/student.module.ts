@@ -9,9 +9,13 @@ import { Guardian, GuardianSchema } from '../guardian/schema/guardian.schema';
 @Module({
   imports: [
     GuardianModule,
-    MongooseModule.forFeature([{ name: Student.name, schema: StudentSchema },{ name: Guardian.name, schema: GuardianSchema }])
+    MongooseModule.forFeature([
+      { name: Student.name, schema: StudentSchema },
+      { name: Guardian.name, schema: GuardianSchema },
+    ]),
   ],
   controllers: [StudentController],
   providers: [StudentService],
+  exports: [StudentService],
 })
 export class StudentModule {}

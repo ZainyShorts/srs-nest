@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -13,25 +22,43 @@ export class ScheduleController {
   }
 
   @Get()
-async findAll( 
-  @Query('page')  page = 1, 
-   @Query('limit') limit = 10, 
-   @Query('class') className?:string ,
-   @Query('section') section?:string,
-   @Query('email') email?:string,
-
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('class') className?: string,
+    @Query('section') section?: string,
+    @Query('email') email?: string,
+    @Query('teacherId') teacherId?: string,
+    @Query('date') date?: string, // accepts: today, yesterday, tomorrow
+    @Query('courseId') courseId?: boolean,
   ) {
-  return this.scheduleService.findAll(+page, +limit , className , section , email);
-}
-
+    return this.scheduleService.findAll(
+      +page,
+      +limit,
+      className,
+      section,
+      email,
+      teacherId,
+      date,
+      courseId,
+    );
+  }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.scheduleService.findOne(id);
   }
 
+  @Get('getTotalStudentsAssignedToTeacher/:id')
+  async getTotalStudentsAssignedToTeacher(@Param('id') id: string) {
+    return this.scheduleService.getTotalStudentsAssignedToTeacher(id);
+  }
+
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateScheduleDto: UpdateScheduleDto,
+  ) {
     return this.scheduleService.update(id, updateScheduleDto);
   }
 

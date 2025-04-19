@@ -152,6 +152,19 @@ export class StudentService {
     };
   }
 
+  async studentCount(className: string, section: string) {
+    try {
+      const count = await this.studentModel.countDocuments({
+        class: className,
+        section: section,
+      });
+      return count;
+    } catch (error) {
+      console.error('Error fetching student count:', error);
+      return 0; // or throw error if you want the caller to handle it
+    }
+  }
+
   async findOne(id: string): Promise<Student> {
     return this.studentModel
       .findById(id, '-password -updatedAt') // Exclude password and updatedAt fields

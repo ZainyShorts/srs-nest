@@ -40,10 +40,12 @@ export class Student extends Document {
   @Prop({ required: true })
   expectedGraduation: string;
 
-  @Prop({ default:"$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm"})
+  @Prop({
+    default: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
+  })
   password: string; // Hashed password
 
-  @Prop({ type: Types.ObjectId, ref: 'Guardian', required: false }) 
+  @Prop({ type: Types.ObjectId, ref: 'Guardian', required: false })
   guardian: Guardian;
 
   @Prop({ required: true })
@@ -52,13 +54,13 @@ export class Student extends Document {
   @Prop({ required: false })
   transcripts: string[]; // Store transcript as a file URL or text
 
-  @Prop({ required: false, default:false })
+  @Prop({ required: false, default: false })
   iipFlag: boolean; // IIP Flag information
 
   @Prop({ default: false })
   honorRolls: boolean; // Honor Rolls flag
 
-  @Prop({ default:false})
+  @Prop({ default: false })
   athletics: boolean; // Athletics activities
 
   @Prop({ required: false })
