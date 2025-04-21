@@ -1,4 +1,15 @@
-import { Controller, Post, Body, Put, Param, Delete, Get, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  Get,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { TeacherService } from './teacher.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { Teacher } from './schema/schema.teacher';
@@ -11,21 +22,29 @@ import { ResponseDto } from 'src/dto/response.dto';
 export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
 
-
   @Get()
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Query('startDate') startDate?:string,
-    @Query('endDate') endDate?:string,
-    @Query('department') department?:string,
-    @Query('email') email?:string 
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('department') department?: string,
+    @Query('email') email?: string,
   ) {
-    return this.teacherService.findAll(Number(page), Number(limit),startDate,endDate,department,email);
+    return this.teacherService.findAll(
+      Number(page),
+      Number(limit),
+      startDate,
+      endDate,
+      department,
+      email,
+    );
   }
 
   @Post('add')
-  async addTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher | ResponseDto> {
+  async addTeacher(
+    @Body() createTeacherDto: CreateTeacherDto,
+  ): Promise<Teacher | ResponseDto> {
     return this.teacherService.addTeacher(createTeacherDto);
   }
 
@@ -35,25 +54,24 @@ export class TeacherController {
   }
 
   @Put(':id')
-  async updateTeacher(@Param('id') id: string, @Body() updateTeacherDto: UpdateTeacherDto): Promise<Teacher> {
+  async updateTeacher(
+    @Param('id') id: string,
+    @Body() updateTeacherDto: UpdateTeacherDto,
+  ): Promise<Teacher> {
     return this.teacherService.updateTeacher(id, updateTeacherDto);
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-  return this.teacherService.delete(id);
+    return this.teacherService.delete(id);
   }
 
   @Post('import')
   @UseInterceptors(FileInterceptor('file', multerOptionsForXlxs))
-  async importStudents(@UploadedFile() file: UploadedFileType,) {
+  async importStudents(@UploadedFile() file: UploadedFileType) {
     if (!file) {
       throw new Error('File is required');
     }
     return this.teacherService.importStudents(file.path);
   }
-
-  
-
-
 }

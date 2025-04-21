@@ -12,6 +12,7 @@ import { UpdateTeacherDto } from './dto/update-teaacher.dto';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import { ResponseDto } from 'src/dto/response.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class TeacherService {
@@ -200,6 +201,20 @@ export class TeacherService {
           if (err) console.error('Error deleting file:', err);
         });
       }
+    }
+  }
+
+  async validateTeacher(data: { email: string; password: string }) {
+    try {
+      const teacher = await this.teacherModel.findOne({ email: data.email });
+      if (!teacher) return null;
+
+      const isMatch = await bcrypt.compare(data.password, teacher.password);
+
+      return isMatch ? teacher : null;
+    } catch (e) {
+      console.log(e);
+      return null;
     }
   }
 }

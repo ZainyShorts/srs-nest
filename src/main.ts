@@ -1,22 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-import { json, raw, urlencoded } from 'express';
+import { json, urlencoded } from 'express';
 import { ensureUploadsFolder } from 'utils/methods';
-import { Module, OnModuleInit } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 dotenv.config();
 
-
 async function bootstrap() {
-  ensureUploadsFolder()
+  ensureUploadsFolder();
   const app = await NestFactory.create(AppModule);
-  app.enableCors()
+  app.use(cookieParser()); // 👈 Add this
+  app.enableCors({
+    origin: 'http://localhost:3000', // frontend
+    credentials: true, // allow sending cookies
+  });
 
   // 🟢 Regular body parser for other routes
   app.use(json());
   app.use(urlencoded({ extended: true }));
-  
+
   await app.listen(3014);
 }
 bootstrap();

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -18,8 +19,28 @@ export class AttendanceService {
   async markAttendance(
     createAttendanceDto: CreateAttendanceDto,
   ): Promise<Attendance> {
-    const attendance = new this.attendanceModel(createAttendanceDto);
-    return attendance.save();
+    try {
+      const exists = await this.attendanceModel.findOne({
+        teacherId: createAttendanceDto.teacherId,
+        courseId: createAttendanceDto.courseId,
+        class: createAttendanceDto.class,
+        section: createAttendanceDto.section,
+        date: createAttendanceDto.date,
+      });
+
+      if (exists) {
+        throw new ConflictException('Attendance already marked for this date');
+      }
+
+      const attendance = new this.attendanceModel(createAttendanceDto);
+      return await attendance.save();
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw new ConflictException(error);
+      }
+      console.error('Error marking attendance:', error);
+      throw new InternalServerErrorException('Failed to mark attendance');
+    }
   }
 
   async summarizeAttendanceByStatus(data: any[]) {

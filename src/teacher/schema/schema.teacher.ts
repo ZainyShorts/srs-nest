@@ -11,7 +11,7 @@ export class Teacher {
   @Prop({ required: true })
   lastName: string;
 
-  @Prop({ required: true})
+  @Prop({ required: true })
   gender: string;
 
   @Prop({ required: true })
@@ -19,6 +19,11 @@ export class Teacher {
 
   @Prop({ required: true, unique: true })
   email: string;
+
+  @Prop({
+    default: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
+  })
+  password: string;
 
   @Prop()
   department: string;
