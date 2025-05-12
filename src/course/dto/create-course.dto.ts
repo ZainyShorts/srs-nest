@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, IsBoolean } from 'class-validator';
 
 export class CreateCourseDto {
   @IsNotEmpty()
@@ -36,8 +36,4 @@ export class CreateCourseDto {
   @IsNotEmpty()
   @IsString()
   duration: string;
-  
-
- 
 }
-

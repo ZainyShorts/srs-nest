@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types, Schema as MongooseSchema  } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Department } from 'src/department/schema/department.schema';
 
 export type CourseDocument = Course & Document;
@@ -9,7 +9,11 @@ export class Course {
   @Prop({ required: true, unique: true })
   courseCode: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Department', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Department',
+    required: true,
+  })
   departmentId: Department;
 
   @Prop({ required: false })
@@ -24,16 +28,18 @@ export class Course {
   @Prop({ required: true })
   courseCredit: number;
 
-  @Prop({ required: true, default:false})
+  @Prop({ required: true, default: false })
   active: boolean;
 
-  @Prop({ required: true, default:false })
+  @Prop({ required: true, default: false })
   special: boolean;
 
-  @Prop({ required: true, enum: ['Full Year', 'Semester', 'Quarter'], default: 'Semester' })
+  @Prop({
+    required: true,
+    enum: ['Full Year', 'Semester', 'Quarter'],
+    default: 'Semester',
+  })
   duration: string;
-
-
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

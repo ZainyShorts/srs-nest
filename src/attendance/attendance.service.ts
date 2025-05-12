@@ -79,23 +79,28 @@ export class AttendanceService {
 
   async getTeacherViewAttendance(
     courseId: string,
-    teacherId: string,
     room: string,
     section: string,
     date: string,
+    teacherId?: string,
   ): Promise<Attendance[]> {
     try {
-      if (!courseId || !teacherId || !room || !section || !date) {
+      if (!courseId || !room || !section || !date) {
         throw new BadRequestException('Missing required parameters');
       }
 
       const filters: any = {
-        teacherId,
         courseId,
         class: room,
         section,
         date,
       };
+
+      if (teacherId) {
+        filters.teacherId = teacherId;
+      }
+
+      console.log(filters);
 
       let result: any = await this.attendanceModel.findOne(filters).exec();
 

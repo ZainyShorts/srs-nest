@@ -16,20 +16,18 @@ export class AttendanceController {
 
   @Get('/getTeacherViewAttendance')
   async getTeacherViewAttendance(
-  @Query('room') room: string,
-  @Query('section') section: string,
-  @Query('date') date: string,
-  @Query('courseId') courseId: string,
-  @Query('teacherId') teacherId: string,
-): Promise<Attendance[]> {
-  console.log('Received:', { room, section, date, courseId, teacherId });
-  return this.attendanceService.getTeacherViewAttendance(
-    courseId,
-    teacherId,
-    room,
-    section,
-    date,
-  );
-}
-
+    @Query('room') room: string,
+    @Query('section') section: string,
+    @Query('date') date: string,
+    @Query('courseId') courseId: string,
+    @Query('teacherId') teacherId?: string,
+  ): Promise<Attendance[]> {
+    return this.attendanceService.getTeacherViewAttendance(
+      courseId,
+      room,
+      section,
+      date,
+      teacherId,
+    );
+  }
 }
