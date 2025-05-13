@@ -18,6 +18,7 @@ export class CourseController {
 
   @Post('add')
   create(@Body() createCourseDto: CreateCourseDto) {
+    console.log('create');
     return this.courseService.create(createCourseDto);
   }
 

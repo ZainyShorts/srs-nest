@@ -4,4 +4,6 @@ export class CreateCourseOutlineDto {
   status: string;
   document: string;
   courseName: string;
+  notes?: string;
+  teacherId: unknown;
 }

@@ -23,6 +23,7 @@ export class CourseOutlineService {
     try {
       const exists = await this.courseOutlineModel.findOne({
         courseName: dto.courseName,
+        teacherId: dto.teacherId,
       });
       if (exists) {
         throw new ConflictException(

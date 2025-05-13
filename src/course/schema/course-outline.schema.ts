@@ -26,6 +26,9 @@ export class CourseOutline {
 
   @Prop({ required: true })
   courseName: string;
+
+  @Prop({ required: true })
+  notes: string;
 }
 
 export const CourseOutlineSchema = SchemaFactory.createForClass(CourseOutline);
