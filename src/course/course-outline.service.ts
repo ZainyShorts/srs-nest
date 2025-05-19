@@ -21,15 +21,6 @@ export class CourseOutlineService {
 
   async create(dto: CreateCourseOutlineDto): Promise<CourseOutline> {
     try {
-      const exists = await this.courseOutlineModel.findOne({
-        courseName: dto.courseName,
-        teacherId: dto.teacherId,
-      });
-      if (exists) {
-        throw new ConflictException(
-          'Course outline with this name already exists.',
-        );
-      }
       const created = new this.courseOutlineModel(dto);
       return await created.save();
     } catch (error) {

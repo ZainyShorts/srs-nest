@@ -27,7 +27,7 @@ export class CourseOutline {
   @Prop({ required: true })
   courseName: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   notes: string;
 }
 
