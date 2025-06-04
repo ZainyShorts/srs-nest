@@ -5,6 +5,11 @@ import { StudentController } from './student.controller';
 import { Student, StudentSchema } from './schema/student.schema';
 import { GuardianModule } from '../guardian/guardian.module';
 import { Guardian, GuardianSchema } from '../guardian/schema/guardian.schema';
+import {
+  Attendance,
+  AttendanceSchema,
+} from 'src/attendance/schema/schema.attendace';
+import { Course, CourseSchema } from 'src/course/schema/course.schema';
 
 @Module({
   imports: [
@@ -12,6 +17,8 @@ import { Guardian, GuardianSchema } from '../guardian/schema/guardian.schema';
     MongooseModule.forFeature([
       { name: Student.name, schema: StudentSchema },
       { name: Guardian.name, schema: GuardianSchema },
+      { name: Attendance.name, schema: AttendanceSchema },
+      { name: Course.name, schema: CourseSchema },
     ]),
   ],
   controllers: [StudentController],

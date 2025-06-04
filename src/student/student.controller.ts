@@ -9,6 +9,7 @@ import {
   Put,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -22,11 +23,33 @@ import { ResponseDto } from 'src/dto/response.dto';
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
+  // attendance.controller.ts
+
+  @Get('attendance')
+  async getAttendanceByStudentId(@Query('studentId') studentId: string) {
+    if (!studentId) {
+      throw new BadRequestException('studentId is required');
+    }
+    return this.studentService.getAttendanceByStudentId(studentId);
+  }
+
   @Post('add')
+  
   async create(
     @Body() createStudentDto: CreateStudentDto,
   ): Promise<Student | ResponseDto> {
     return this.studentService.create(createStudentDto);
+  }
+
+  @Get('course')
+  async getStudentCourseAttendance(
+    @Query('studentId') studentId: string,
+    @Query('courseCode') courseCode: string,
+  ) {
+    return this.studentService.getStudentAttendanceByCourseCode(
+      courseCode,
+      studentId,
+    );
   }
 
   @Get()
