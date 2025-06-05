@@ -27,9 +27,11 @@ export class Course {
 
   @Prop({ required: true })
   courseCredit: number;
-
+ 
   @Prop({ required: true, default: false })
-  active: boolean;
+  active: boolean; 
+    @Prop({ required: false, default: false })
+  assigned: boolean;
 
   @Prop({ required: true, default: false })
   special: boolean;

@@ -11,7 +11,8 @@ import * as moment from 'moment';
 export class ScheduleService {
   constructor(
     @InjectModel(Schedule.name) private scheduleModel: Model<ScheduleDocument>,
-    private readonly studentService: StudentService,
+    private readonly studentService: StudentService, 
+    
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
@@ -85,7 +86,46 @@ export class ScheduleService {
       throw new NotFoundException('Schedule not found');
     }
     return schedule;
+  } 
+ async findSchedulesByStudentIdAndDate(
+  studentId: string,
+  date: string,
+): Promise<Schedule[]> {
+  const student = await this.studentService.findById(studentId);
+  if (!student) {
+    throw new NotFoundException('Student not found');
   }
+
+  const filter: any = {
+    className: student.class,
+    section: student.section,
+  };
+
+  // Step 3: Map date to day name
+  let dayToMatch: string | null = null;
+  if (date === 'today') {
+    dayToMatch = moment().format('dddd');
+  } else if (date === 'tomorrow') {
+    dayToMatch = moment().add(1, 'day').format('dddd');
+  } else if (date === 'yesterday') {
+    dayToMatch = moment().subtract(1, 'day').format('dddd');
+  } else {
+    dayToMatch = date; // assume full day name like "Monday"
+  }
+
+  if (dayToMatch) {
+    filter['dayOfWeek.date'] = dayToMatch;
+  }
+
+  // Step 4: Query schedules
+  return this.scheduleModel
+    .find(filter)
+    .populate('courseId')
+    .populate('teacherId')
+    .sort({ createdAt: -1 })
+    .exec();
+}
+
 
   async getTotalStudentsAssignedToTeacher(id: string) {
     let totalStudents = 0;

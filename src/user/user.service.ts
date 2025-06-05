@@ -14,6 +14,7 @@ export class UserService {
 
   async validateUser(email: string, password: string, type: UserRole) {
     if (type === UserRole.Teacher) {
+      console.log(type)
       return this.teacherService.validateTeacher({ email, password });
     }
     if (type === UserRole.Student) {

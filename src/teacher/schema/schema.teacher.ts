@@ -23,8 +23,11 @@ export class Teacher {
   @Prop({
     default: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
   })
-  password: string;
+  password: string; 
 
+   @Prop({ type: [String], default: [] })
+  assignedCourses: string[]; 
+  
   @Prop()
   department: string;
 

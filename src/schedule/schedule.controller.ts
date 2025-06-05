@@ -46,6 +46,14 @@ export class ScheduleController {
       courseId,
     );
   }
+@Get('by-student')
+async getSchedulesByStudentAndDate(
+  @Query('studentId') studentId: string,
+  @Query('date') date: string,
+) {
+  return this.scheduleService.findSchedulesByStudentIdAndDate(studentId, date);
+}
+
 
   @Get(':id')
   async findOne(@Param('id') id: string) {

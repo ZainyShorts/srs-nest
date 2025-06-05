@@ -81,7 +81,7 @@ export class StudentService {
         msg: `Guardian email "${guardianEmail}" is already registered`,
       };
     }
-
+  
     // Create Guardian First
     const guardian = await this.guardianService.create({
       guardianName,
@@ -106,7 +106,9 @@ export class StudentService {
 
     return student.save();
   }
-
+  async findById(id: string): Promise<Student> {
+    return this.studentModel.findById(id).exec();
+  }
   async findAll(
     page = 1,
     limit = 10,
