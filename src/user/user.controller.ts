@@ -17,11 +17,11 @@ export class UserController {
   @Post('login')
   async login(@Body() body, @Res({ passthrough: true }) res: Response) {
     const { email, password } = body;
-
+    console.log(email, password);
     const user = await this.authService.validateUser(
       email,
       password,
-      UserRole.Teacher,
+      UserRole.Student,
     );
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);

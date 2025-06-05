@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { Student } from './schema/student.schema';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -16,6 +16,8 @@ import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import { Guardian } from '../guardian/schema/guardian.schema';
 import { ResponseDto } from 'src/dto/response.dto';
+import { Attendance } from 'src/attendance/schema/schema.attendace';
+import { Course, CourseDocument } from 'src/course/schema/course.schema';
 
 @Injectable()
 export class StudentService {
@@ -23,6 +25,8 @@ export class StudentService {
     @InjectModel(Student.name) private studentModel: Model<Student>,
     private readonly guardianService: GuardianService,
     @InjectModel(Guardian.name) private guardianModel: Model<Guardian>,
+    @InjectModel(Attendance.name) private attendanceModel: Model<Attendance>,
+    @InjectModel(Course.name) private courseModel: Model<Course>,
   ) {}
 
   async create(
@@ -342,6 +346,160 @@ export class StudentService {
           if (err) console.error('Error deleting file:', err);
         });
       }
+    }
+  }
+
+  async getAttendanceByStudentId(studentObjectId: string) {
+    const objectId = new Types.ObjectId(studentObjectId);
+
+    const records = await this.attendanceModel
+      .find({ 'students._id': objectId })
+      .select('courseId students')
+      .populate('courseId', 'courseName courseCode');
+
+    const attendanceByCourse: Record<
+      string,
+      { present: number; total: number; name: string }
+    > = {};
+
+    records.forEach((record) => {
+      const courseId = (record.courseId as any)._id.toString();
+      const courseName = record.courseId.courseName;
+
+      const studentEntry = record.students.find((s: any) =>
+        new Types.ObjectId(s._id).equals(objectId),
+      );
+
+      if (!studentEntry) return;
+
+      if (!attendanceByCourse[courseId]) {
+        attendanceByCourse[courseId] = {
+          present: 0,
+          total: 0,
+          name: courseName,
+        };
+      }
+
+      if (studentEntry.attendance === 'Present') {
+        attendanceByCourse[courseId].present += 1;
+      }
+
+      attendanceByCourse[courseId].total += 1;
+    });
+
+    const result = Object.entries(attendanceByCourse).map(
+      ([courseId, stats]) => ({
+        courseId,
+        courseName: stats.name,
+        attendancePercentage: Math.round((stats.present / stats.total) * 100),
+      }),
+    );
+
+    return result;
+  }
+
+  async getStudentAttendanceByCourseCode(
+    courseCode: string,
+    studentId: string,
+  ) {
+    // Step 1: Find the course by code
+    console.log(courseCode);
+    console.log(studentId);
+
+    const courseId = new Types.ObjectId(courseCode);
+    const course = await this.courseModel.findOne({ _id: courseCode });
+
+    console.log(
+      courseCode,
+      'is course id ka aaginst ya course aia ha ',
+      course,
+    );
+
+    if (!course) {
+      throw new NotFoundException(`Course with code ${courseCode} not found`);
+    }
+
+    // Step 2: Find attendance entries for this course and student
+    const attendanceRecords = await this.attendanceModel
+      .find({
+        courseId: course._id,
+        'students._id': studentId,
+      })
+      .select('date students');
+
+    // Step 3: Extract only the relevant student's attendance per date
+    const attendanceData = attendanceRecords.map((record) => {
+      const student = record.students.find((s: any) =>
+        new Types.ObjectId(s._id).equals(studentId),
+      );
+      return {
+        date: record.date,
+        status: student?.attendance || 'N/A',
+      };
+    });
+
+    // Step 4: Return course code first, then attendance records
+    return [{ courseCode: course.courseCode }, ...attendanceData];
+  }
+
+  // async getStudentAttendanceByCourseCode(
+  //   courseCode: string,
+  //   studentId: string,
+  // ) {
+  //   // Step 1: Find the course by code
+
+  //   console.log(courseCode);
+  //   console.log(studentId);
+
+  //   const courseId = new Types.ObjectId(courseCode);
+  //   const course = await this.courseModel.findOne({ _id: courseCode });
+  //   // .select('_id');
+  //   // const course = await this.courseModel.findById({_id:courseCode} ).select('_id');
+
+  //   console.log(
+  //     courseCode,
+  //     'is course id ka aaginst ya course aia ha ',
+  //     course,
+  //   );
+  //   if (!course) {
+  //     throw new NotFoundException(`Course with code ${courseCode} not found`);
+  //   }
+
+  //   // Step 2: Find attendance entries for this course and student
+  //   const attendanceRecords = await this.attendanceModel
+  //     .find({
+  //       courseId: course._id,
+  //       'students._id': studentId,
+  //     })
+  //     .select('date students');
+
+  //   // Step 3: Extract only the relevant student's attendance per date
+  //   const result = attendanceRecords.map((record) => {
+  //     const student = record.students.find((s: any) =>
+  //       new Types.ObjectId(s._id).equals(studentId),
+  //     );
+  //     return {
+  //       courseCode:course.courseCode,
+  //       date: record.date,
+  //       status: student?.attendance || 'N/A',
+  //     };
+  //   });
+
+  //   return result;
+  // }
+
+  // stundent auth
+  async validateStudent(data: { email: string; password: string }) {
+    try {
+      const student = await this.studentModel.findOne({ email: data.email });
+      if (!student) return null;
+
+      const isMatch = await bcrypt.compare(data.password, student.password);
+
+      return isMatch ? student : null;
+    } catch (e) {
+      console.log(e);
+      return null;
     }
   }
 }
