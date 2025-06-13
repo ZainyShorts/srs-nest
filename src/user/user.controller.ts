@@ -21,7 +21,7 @@ export class UserController {
     const user = await this.authService.validateUser(
       email,
       password,
-      UserRole.Teacher,
+      role,
     );
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);

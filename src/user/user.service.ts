@@ -12,9 +12,9 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string, type: UserRole) {
+  async validateUser(email: string, password: string, type: string) {
+    console.log('type', type);
     if (type === UserRole.Teacher) {
-      console.log('type',type)
       return this.teacherService.validateTeacher({ email, password });
     }
     if (type === UserRole.Student) {
