@@ -1,0 +1,28 @@
+export declare class CreateStudentDto {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    class: string;
+    section: string;
+    gender: string;
+    dob: string;
+    email: string;
+    phone: string;
+    address: string;
+    enrollDate: string;
+    expectedGraduation: string;
+    guardianName: string;
+    guardianEmail: string;
+    guardianPhone: string;
+    guardianPhoto: string;
+    guardianRelation: string;
+    guardianProfession: string;
+    profilePhoto: string;
+    transcripts?: string[];
+    iipFlag?: string;
+    honorRolls: boolean;
+    athletics: boolean;
+    clubs?: string;
+    lunch?: string;
+    nationality: string;
+}
