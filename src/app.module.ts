@@ -15,6 +15,7 @@ import { ClubModule } from './club/club.module';
 import { GlobalModule } from './global/global.module';
 import { GradeModule } from './grade/grade.module';
 import { UserModule } from './user/user.module';
+import { AwsModule } from './aws/aws.module';
 
 
 @Module({
@@ -34,7 +35,8 @@ import { UserModule } from './user/user.module';
     ClubModule,
     GlobalModule,
     GradeModule,
-    UserModule
+    UserModule,
+    AwsModule
   ],
   controllers: [AppController],
   providers: [AppService],

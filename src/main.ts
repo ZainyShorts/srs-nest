@@ -11,9 +11,13 @@ async function bootstrap() {
   ensureUploadsFolder();
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser()); // 👈 Add this
+  // app.enableCors({
+  //   origin: 'http://localhost:3000', // frontend
+  //   credentials: true, // allow sending cookies
+  // });
   app.enableCors({
-    origin: 'http://localhost:3000', // frontend
-    credentials: true, // allow sending cookies
+    origin: true, // ✅ Allow all origins dynamically
+    credentials: true, // ✅ Allow cookies to be sent
   });
 
   // 🟢 Regular body parser for other routes

@@ -1,15 +1,20 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 @ObjectType()
 export class ResponseDto {
-
-  @Field(()=> Boolean)
+  @Field(() => Boolean)
   @IsNotEmpty()
   @IsBoolean()
   success?: boolean;
 
-  @Field(()=> Int)
+  @Field(() => Int)
   @IsNotEmpty()
   @IsNumber()
   status: number;
@@ -17,9 +22,8 @@ export class ResponseDto {
   @IsOptional()
   data?: any; // If you want to validate `assistant`, you can replace `any` with a proper type or class.
 
-  @Field(()=> String)
+  @Field(() => String)
   @IsOptional()
   @IsString()
   msg?: string;
 }
-
