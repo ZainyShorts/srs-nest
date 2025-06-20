@@ -25,8 +25,74 @@ let ScheduleService = class ScheduleService {
         this.studentService = studentService;
     }
     async create(createScheduleDto) {
-        const newSchedule = new this.scheduleModel(createScheduleDto);
-        return newSchedule.save();
+        try {
+            const { teacherId, dayOfWeek } = createScheduleDto;
+            let conflict = false;
+            let date;
+            let startTime;
+            let endTime;
+            for (const newDay of dayOfWeek) {
+                const existingSchedules = await this.scheduleModel.find({
+                    teacherId,
+                    'dayOfWeek.date': newDay.date,
+                });
+                for (const schedule of existingSchedules) {
+                    for (const existingDay of schedule.dayOfWeek) {
+                        if (existingDay.date === newDay.date) {
+                            if (this.isTimeOverlap(existingDay.startTime, existingDay.endTime, newDay.startTime, newDay.endTime)) {
+                                console.log('Conflict found with:', {
+                                    existingDay,
+                                    newDay,
+                                    teacherId,
+                                });
+                                date = newDay.date;
+                                startTime = existingDay.startTime;
+                                endTime = existingDay.endTime;
+                                conflict = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            console.log(conflict, 'conflict');
+            if (conflict) {
+                return {
+                    success: false,
+                    message: `Schedule conflict: Teacher already has a class on ${date} between ${startTime} and ${endTime}`,
+                };
+            }
+            const newSchedule = new this.scheduleModel(createScheduleDto);
+            await newSchedule.save();
+            console.log('Schedule saved:', newSchedule);
+            return {
+                success: true,
+                message: 'Schedule created successfully.',
+            };
+        }
+        catch (error) {
+            console.error('Error creating schedule:', error);
+            return {
+                success: false,
+                message: 'An error occurred while creating the schedule.',
+            };
+        }
+    }
+    isTimeOverlap(start1, end1, start2, end2) {
+        const format = (time) => {
+            const [timeStr, modifier] = time.split(' ');
+            let [hours, minutes] = timeStr.split(':').map(Number);
+            if (modifier === 'PM' && hours !== 12)
+                hours += 12;
+            if (modifier === 'AM' && hours === 12)
+                hours = 0;
+            return hours * 60 + minutes;
+        };
+        const s1 = format(start1);
+        const e1 = format(end1);
+        const s2 = format(start2);
+        const e2 = format(end2);
+        return s1 < e2 && s2 < e1;
     }
     async findAll(page, limit, className, section, email, teacherId, date, courseId) {
         const skip = (page - 1) * limit;

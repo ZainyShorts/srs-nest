@@ -4,7 +4,10 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 export declare class ScheduleController {
     private readonly scheduleService;
     constructor(scheduleService: ScheduleService);
-    create(createScheduleDto: CreateScheduleDto): Promise<import("./schema/schedule.schema").Schedule>;
+    create(createScheduleDto: CreateScheduleDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     findAll(page?: number, limit?: number, className?: string, section?: string, email?: string, teacherId?: string, date?: string, courseId?: boolean): Promise<{
         data: import("./schema/schedule.schema").Schedule[];
         total: number;

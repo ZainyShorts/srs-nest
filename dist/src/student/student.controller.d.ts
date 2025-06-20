@@ -34,6 +34,6 @@ export declare class StudentController {
     delete(id: string): Promise<{
         message: string;
     }>;
-    update(id: string, updateStudentDto: UpdateStudentDto): Promise<ResponseDto | Student>;
+    update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student | ResponseDto>;
     importStudents(file: UploadedFileType): Promise<any>;
 }

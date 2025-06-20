@@ -7,7 +7,11 @@ export declare class ScheduleService {
     private scheduleModel;
     private readonly studentService;
     constructor(scheduleModel: Model<ScheduleDocument>, studentService: StudentService);
-    create(createScheduleDto: CreateScheduleDto): Promise<Schedule>;
+    create(createScheduleDto: CreateScheduleDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    private isTimeOverlap;
     findAll(page: number, limit: number, className: string, section: string, email: string, teacherId?: string, date?: string, courseId?: boolean): Promise<{
         data: Schedule[];
         total: number;
