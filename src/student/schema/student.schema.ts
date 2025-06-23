@@ -35,6 +35,9 @@ export class Student extends Document {
   address: string;
 
   @Prop({ required: true })
+  emergencyContact: string;
+
+  @Prop({ required: true })
   enrollDate: string;
 
   @Prop({ required: true })

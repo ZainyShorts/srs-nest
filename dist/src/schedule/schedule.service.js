@@ -24,60 +24,6 @@ let ScheduleService = class ScheduleService {
         this.scheduleModel = scheduleModel;
         this.studentService = studentService;
     }
-    async create(createScheduleDto) {
-        try {
-            const { teacherId, dayOfWeek } = createScheduleDto;
-            let conflict = false;
-            let date;
-            let startTime;
-            let endTime;
-            for (const newDay of dayOfWeek) {
-                const existingSchedules = await this.scheduleModel.find({
-                    teacherId,
-                    'dayOfWeek.date': newDay.date,
-                });
-                for (const schedule of existingSchedules) {
-                    for (const existingDay of schedule.dayOfWeek) {
-                        if (existingDay.date === newDay.date) {
-                            if (this.isTimeOverlap(existingDay.startTime, existingDay.endTime, newDay.startTime, newDay.endTime)) {
-                                console.log('Conflict found with:', {
-                                    existingDay,
-                                    newDay,
-                                    teacherId,
-                                });
-                                date = newDay.date;
-                                startTime = existingDay.startTime;
-                                endTime = existingDay.endTime;
-                                conflict = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            console.log(conflict, 'conflict');
-            if (conflict) {
-                return {
-                    success: false,
-                    message: `Schedule conflict: Teacher already has a class on ${date} between ${startTime} and ${endTime}`,
-                };
-            }
-            const newSchedule = new this.scheduleModel(createScheduleDto);
-            await newSchedule.save();
-            console.log('Schedule saved:', newSchedule);
-            return {
-                success: true,
-                message: 'Schedule created successfully.',
-            };
-        }
-        catch (error) {
-            console.error('Error creating schedule:', error);
-            return {
-                success: false,
-                message: 'An error occurred while creating the schedule.',
-            };
-        }
-    }
     isTimeOverlap(start1, end1, start2, end2) {
         const format = (time) => {
             const [timeStr, modifier] = time.split(' ');
@@ -93,6 +39,79 @@ let ScheduleService = class ScheduleService {
         const s2 = format(start2);
         const e2 = format(end2);
         return s1 < e2 && s2 < e1;
+    }
+    async create(createScheduleDto) {
+        try {
+            const { teacherId, courseId, className, section, dayOfWeek } = createScheduleDto;
+            for (const newDay of dayOfWeek) {
+                const existingTeacherSchedules = await this.scheduleModel.find({
+                    teacherId,
+                    'dayOfWeek.date': newDay.date,
+                });
+                for (const schedule of existingTeacherSchedules) {
+                    for (const existingDay of schedule.dayOfWeek) {
+                        if (existingDay.date === newDay.date) {
+                            if (this.isTimeOverlap(existingDay.startTime, existingDay.endTime, newDay.startTime, newDay.endTime)) {
+                                return {
+                                    success: false,
+                                    message: `Teacher conflict: Teacher already has a class on ${newDay.date} between ${existingDay.startTime} and ${existingDay.endTime}`,
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            for (const newDay of dayOfWeek) {
+                const existingClassSchedules = await this.scheduleModel.find({
+                    className,
+                    section,
+                    'dayOfWeek.date': newDay.date,
+                });
+                for (const schedule of existingClassSchedules) {
+                    for (const existingDay of schedule.dayOfWeek) {
+                        if (existingDay.date === newDay.date) {
+                            if (this.isTimeOverlap(existingDay.startTime, existingDay.endTime, newDay.startTime, newDay.endTime)) {
+                                return {
+                                    success: false,
+                                    message: `Classroom conflict: Class ${className}-${section} already has a schedule on ${newDay.date} between ${existingDay.startTime} and ${existingDay.endTime}`,
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            for (const newDay of dayOfWeek) {
+                const existingCourseSchedules = await this.scheduleModel.find({
+                    courseId,
+                    'dayOfWeek.date': newDay.date,
+                });
+                for (const schedule of existingCourseSchedules) {
+                    for (const existingDay of schedule.dayOfWeek) {
+                        if (existingDay.date === newDay.date) {
+                            if (this.isTimeOverlap(existingDay.startTime, existingDay.endTime, newDay.startTime, newDay.endTime)) {
+                                return {
+                                    success: false,
+                                    message: `Course conflict: This course already has a schedule on ${newDay.date} between ${existingDay.startTime} and ${existingDay.endTime}`,
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            const newSchedule = new this.scheduleModel(createScheduleDto);
+            await newSchedule.save();
+            return {
+                success: true,
+                message: 'Schedule created successfully.',
+            };
+        }
+        catch (error) {
+            console.error('Error creating schedule:', error);
+            return {
+                success: false,
+                message: 'An error occurred while creating the schedule.',
+            };
+        }
     }
     async findAll(page, limit, className, section, email, teacherId, date, courseId) {
         const skip = (page - 1) * limit;
@@ -152,6 +171,9 @@ let ScheduleService = class ScheduleService {
         }
         return schedule;
     }
+    capitalizeFirstLetter(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
     async findSchedulesByStudentIdAndDate(studentId, date) {
         const student = await this.studentService.findById(studentId);
         if (!student) {
@@ -159,7 +181,7 @@ let ScheduleService = class ScheduleService {
         }
         const filter = {
             className: student.class,
-            section: student.section,
+            section: this.capitalizeFirstLetter(student.section),
         };
         let dayToMatch = null;
         if (date === 'today') {
@@ -175,14 +197,53 @@ let ScheduleService = class ScheduleService {
             dayToMatch = date;
         }
         if (dayToMatch) {
-            filter['dayOfWeek.date'] = dayToMatch;
+            filter.dayOfWeek = {
+                $elemMatch: {
+                    date: dayToMatch,
+                },
+            };
         }
-        return this.scheduleModel
-            .find(filter)
-            .populate('courseId')
-            .populate('teacherId')
-            .sort({ createdAt: -1 })
-            .exec();
+        const schedules = await this.scheduleModel.aggregate([
+            {
+                $match: filter,
+            },
+            {
+                $addFields: {
+                    dayOfWeek: {
+                        $filter: {
+                            input: '$dayOfWeek',
+                            cond: { $eq: ['$$this.date', dayToMatch] },
+                        },
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: 'courseId',
+                    foreignField: '_id',
+                    as: 'courseId',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: 'teacherId',
+                    foreignField: '_id',
+                    as: 'teacherId',
+                },
+            },
+            {
+                $unwind: '$courseId',
+            },
+            {
+                $unwind: '$teacherId',
+            },
+            {
+                $sort: { createdAt: -1 },
+            },
+        ]);
+        return schedules;
     }
     async getTotalStudentsAssignedToTeacher(id) {
         let totalStudents = 0;

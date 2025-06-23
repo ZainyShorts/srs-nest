@@ -78,7 +78,9 @@ let TeacherService = class TeacherService {
         }
     }
     async getAssignedCoursesForTeacher(teacherId) {
-        const teacher = await this.teacherModel.findById(teacherId).select('assignedCourses');
+        const teacher = await this.teacherModel
+            .findById(teacherId)
+            .select('assignedCourses');
         if (!teacher) {
             throw new common_1.NotFoundException('Teacher not found');
         }
@@ -88,16 +90,19 @@ let TeacherService = class TeacherService {
         return courses;
     }
     async getUnassignedCoursesByTeacherId(teacherId) {
-        const teacher = await this.teacherModel.findById(teacherId).select('department');
+        const teacher = await this.teacherModel
+            .findById(teacherId)
+            .select('department');
         if (!teacher) {
             throw new common_1.NotFoundException('Teacher not found');
         }
-        const department = await this.departmentModel.findOne({ departmentName: teacher.department });
+        const department = await this.departmentModel.findOne({
+            departmentName: teacher.department,
+        });
         if (!department) {
             throw new common_1.NotFoundException('Department not found for name: ' + teacher.department);
         }
         const unassignedCourses = await this.courseModel.find({
-            assigned: false,
             departmentId: department._id,
         });
         return unassignedCourses;
@@ -111,7 +116,7 @@ let TeacherService = class TeacherService {
         if (!course) {
             throw new common_1.NotFoundException(`Course with ID ${courseId} not found`);
         }
-        const courseIndex = teacher.assignedCourses.findIndex(id => id.toString() === courseId);
+        const courseIndex = teacher.assignedCourses.findIndex((id) => id.toString() === courseId);
         if (courseIndex === -1) {
             throw new common_1.BadRequestException(`Course ${courseId} is not assigned to teacher ${teacherId}`);
         }

@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsMongoId, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsMongoId,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ScheduleDayDto {
@@ -30,11 +36,15 @@ export class CreateScheduleDto {
 
   @IsNotEmpty()
   @IsString()
-  note:string
+  note: string;
 
   @IsNotEmpty()
   @IsMongoId()
   teacherId: string; // Now references Teacher ID
+
+  @IsNotEmpty()
+  @IsMongoId()
+  courseId: string;
 
   @IsArray()
   @ValidateNested({ each: true })

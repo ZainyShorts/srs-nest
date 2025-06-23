@@ -11,6 +11,7 @@ export declare class Student extends Document {
     email: string;
     phone: string;
     address: string;
+    emergencyContact: string;
     enrollDate: string;
     expectedGraduation: string;
     password: string;

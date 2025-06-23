@@ -46,45 +46,39 @@ export class TeacherController {
     @Body() createTeacherDto: CreateTeacherDto,
   ): Promise<Teacher | ResponseDto> {
     return this.teacherService.addTeacher(createTeacherDto);
-  } 
-   @Get('assign-course') 
+  }
+  @Get('assign-course')
   async assignCourse(
     @Query('teacherId') teacherId: string,
     @Query('courseId') courseId: string,
   ) {
     return this.teacherService.assignCourseToTeacher(teacherId, courseId);
-  }  
-  @Get('get/assignedCourses') 
-   async getAssignedCourses(
-    @Query('teacherId') teacherId: string,
-  ) {
+  }
+  @Get('get/assignedCourses')
+  async getAssignedCourses(@Query('teacherId') teacherId: string) {
     return this.teacherService.getAssignedCoursesForTeacher(teacherId);
-  }  
+  }
   @Get('remove-course')
-async removeCourseAssignment(
-  @Query('teacherId') teacherId: string,
-  @Query('courseId') courseId: string,
-) {
-  return this.teacherService.removeCourseAssignment(teacherId, courseId);
-} 
-
-@Get('unassigned-courses')
-async getUnassignedCourses(
-  @Query('departmentId') departmentId: string,
-) {
-  if (!departmentId) {
-    throw new Error('departmentId is required');
+  async removeCourseAssignment(
+    @Query('teacherId') teacherId: string,
+    @Query('courseId') courseId: string,
+  ) {
+    return this.teacherService.removeCourseAssignment(teacherId, courseId);
   }
 
-  return this.teacherService.getUnassignedCoursesByTeacherId(departmentId);
-}
+  @Get('unassigned-courses')
+  async getUnassignedCourses(@Query('departmentId') departmentId: string) {
+    if (!departmentId) {
+      throw new Error('departmentId is required');
+    }
 
+    return this.teacherService.getUnassignedCoursesByTeacherId(departmentId);
+  }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Teacher> {
     return this.teacherService.findOne(id);
-  } 
-  
+  }
 
   @Put(':id')
   async updateTeacher(

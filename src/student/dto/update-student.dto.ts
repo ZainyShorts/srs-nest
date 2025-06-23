@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString, IsDate, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsDate,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class UpdateStudentDto {
   @IsNotEmpty()
@@ -16,6 +23,9 @@ export class UpdateStudentDto {
   @IsNotEmpty()
   @IsString()
   class: string;
+
+  @IsString()
+  emergencyContact: string;
 
   @IsNotEmpty()
   @IsString()

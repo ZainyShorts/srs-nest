@@ -9,7 +9,9 @@ export class Guardian extends Document {
   @Prop({ required: true, unique: true })
   guardianEmail: string;
 
-  @Prop({ default:"$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm"})
+  @Prop({
+    default: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
+  })
   password: string; // Hashed password
 
   @Prop({ required: true })

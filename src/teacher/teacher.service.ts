@@ -1,14 +1,14 @@
 import {
   Injectable,
   ConflictException,
-  NotFoundException, 
-    BadRequestException,
+  NotFoundException,
+  BadRequestException,
   InternalServerErrorException,
   HttpStatus,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateTeacherDto } from './dto/create-teacher.dto'; 
+import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { Course } from 'src/course/schema/course.schema';
 import { Teacher } from './schema/schema.teacher';
 import { UpdateTeacherDto } from './dto/update-teaacher.dto';
@@ -20,11 +20,11 @@ import { Department } from 'src/department/schema/department.schema';
 
 @Injectable()
 export class TeacherService {
-   constructor(
+  constructor(
     @InjectModel(Teacher.name) private readonly teacherModel: Model<Teacher>,
-    @InjectModel(Course.name) private readonly courseModel: Model<Course>, 
-        @InjectModel(Department.name) private readonly departmentModel: Model<Course>,
-
+    @InjectModel(Course.name) private readonly courseModel: Model<Course>,
+    @InjectModel(Department.name)
+    private readonly departmentModel: Model<Course>,
   ) {}
 
   async addTeacher(
@@ -57,152 +57,158 @@ export class TeacherService {
       new: true,
     });
   }
- async assignCourseToTeacher(
-  teacherId: string,
-  courseId: string,
-): Promise<{ teacher: Teacher; course: Course }> {
-  const teacher = await this.teacherModel.findById(teacherId);
-  if (!teacher) {
-    throw new NotFoundException('Teacher not found');
+  async assignCourseToTeacher(
+    teacherId: string,
+    courseId: string,
+  ): Promise<{ teacher: Teacher; course: Course }> {
+    const teacher = await this.teacherModel.findById(teacherId);
+    if (!teacher) {
+      throw new NotFoundException('Teacher not found');
+    }
+
+    const course = await this.courseModel.findById(courseId);
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (teacher.assignedCourses.includes(courseId)) {
+      throw new NotFoundException('Course already assigned to this teacher');
+    }
+
+    const session = await this.teacherModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      const updatedTeacher = await this.teacherModel.findByIdAndUpdate(
+        teacherId,
+        { $addToSet: { assignedCourses: courseId } },
+        { new: true, session },
+      );
+
+      const updatedCourse = await this.courseModel.findByIdAndUpdate(
+        courseId,
+        { assigned: true },
+        { new: true, session },
+      );
+
+      await session.commitTransaction();
+      await session.endSession();
+
+      return { teacher: updatedTeacher, course: updatedCourse };
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      throw new Error('Failed to assign course to teacher');
+    }
   }
 
-  const course = await this.courseModel.findById(courseId);
-  if (!course) {
-    throw new NotFoundException('Course not found');
+  async getAssignedCoursesForTeacher(teacherId: string): Promise<Course[]> {
+    const teacher = await this.teacherModel
+      .findById(teacherId)
+      .select('assignedCourses');
+
+    if (!teacher) {
+      throw new NotFoundException('Teacher not found');
+    }
+
+    const courses = await this.courseModel.find({
+      _id: { $in: teacher.assignedCourses },
+    });
+
+    return courses;
+  }
+  async getUnassignedCoursesByTeacherId(teacherId: string): Promise<any> {
+    // Step 1: Get the teacher and their department name
+    const teacher = await this.teacherModel
+      .findById(teacherId)
+      .select('department');
+    if (!teacher) {
+      throw new NotFoundException('Teacher not found');
+    }
+
+    // Step 2: Find the department by its name
+    const department = await this.departmentModel.findOne({
+      departmentName: teacher.department,
+    });
+    if (!department) {
+      throw new NotFoundException(
+        'Department not found for name: ' + teacher.department,
+      );
+    }
+
+    // Step 3: Fetch unassigned courses that match the department ID
+    const unassignedCourses = await this.courseModel.find({
+      // assigned: false,
+      departmentId: department._id,
+    });
+
+    return unassignedCourses;
   }
 
-  if (teacher.assignedCourses.includes(courseId)) {
-    throw new NotFoundException('Course already assigned to this teacher');
-  }
+  async removeCourseAssignment(
+    teacherId: string,
+    courseId: string,
+  ): Promise<{ teacher: Teacher; course: Course }> {
+    // Add validation at the start
+    // if (!isValidObjectId(teacherId)) {
+    //   throw new BadRequestException('Invalid teacher ID format');
+    // }
+    // if (!isValidObjectId(courseId)) {
+    //   throw new BadRequestException('Invalid course ID format');
+    // }
 
-  const session = await this.teacherModel.db.startSession();
-  session.startTransaction();
+    // Verify teacher exists
+    const teacher = await this.teacherModel.findById(teacherId);
+    if (!teacher) {
+      throw new NotFoundException(`Teacher with ID ${teacherId} not found`);
+    }
 
-  try {
-    const updatedTeacher = await this.teacherModel.findByIdAndUpdate(
-      teacherId,
-      { $addToSet: { assignedCourses: courseId } },
-      { new: true, session },
+    // Verify course exists
+    const course = await this.courseModel.findById(courseId);
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+
+    // Check if course is actually assigned
+    const courseIndex = teacher.assignedCourses.findIndex(
+      (id) => id.toString() === courseId,
     );
 
-    const updatedCourse = await this.courseModel.findByIdAndUpdate(
-      courseId,
-      { assigned: true },
-      { new: true, session },
-    );
+    if (courseIndex === -1) {
+      throw new BadRequestException(
+        `Course ${courseId} is not assigned to teacher ${teacherId}`,
+      );
+    }
 
-    await session.commitTransaction();
-    await session.endSession();
+    const session = await this.teacherModel.db.startSession();
+    session.startTransaction();
 
-    return { teacher: updatedTeacher, course: updatedCourse };
-  } catch (error) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new Error('Failed to assign course to teacher');
+    try {
+      // Remove course from teacher's array
+      const updatedTeacher = await this.teacherModel.findByIdAndUpdate(
+        teacherId,
+        { $pull: { assignedCourses: courseId } },
+        { new: true, session },
+      );
+
+      // Update course status
+      const updatedCourse = await this.courseModel.findByIdAndUpdate(
+        courseId,
+        { assigned: false },
+        { new: true, session },
+      );
+
+      await session.commitTransaction();
+      return { teacher: updatedTeacher, course: updatedCourse };
+    } catch (error) {
+      await session.abortTransaction();
+      throw new InternalServerErrorException(
+        'Failed to unassign course: ' + error.message,
+      );
+    } finally {
+      session.endSession();
+    }
   }
-}  
-async getAssignedCoursesForTeacher(
-  teacherId: string,
-): Promise<Course[]> {
-  const teacher = await this.teacherModel.findById(teacherId).select('assignedCourses');
-
-  if (!teacher) {
-    throw new NotFoundException('Teacher not found');
-  }
-
-  const courses = await this.courseModel.find({
-    _id: { $in: teacher.assignedCourses },
-  });
-
-  return courses;
-}
-async getUnassignedCoursesByTeacherId(teacherId: string): Promise<any> {
-  // Step 1: Get the teacher and their department name
-  const teacher = await this.teacherModel.findById(teacherId).select('department');
-  if (!teacher) {
-    throw new NotFoundException('Teacher not found');
-  }
-
-  // Step 2: Find the department by its name
-  const department = await this.departmentModel.findOne({ departmentName: teacher.department });
-  if (!department) {
-    throw new NotFoundException('Department not found for name: ' + teacher.department);
-  }
-
-  // Step 3: Fetch unassigned courses that match the department ID
-  const unassignedCourses = await this.courseModel.find({
-    assigned: false,
-    departmentId: department._id,
-  });
-
-  return unassignedCourses;
-}
-
-
-async removeCourseAssignment(
-  teacherId: string,
-  courseId: string,
-): Promise<{ teacher: Teacher; course: Course }> {
-  // Add validation at the start
-  // if (!isValidObjectId(teacherId)) {
-  //   throw new BadRequestException('Invalid teacher ID format');
-  // }
-  // if (!isValidObjectId(courseId)) {
-  //   throw new BadRequestException('Invalid course ID format');
-  // }
-
-  // Verify teacher exists
-  const teacher = await this.teacherModel.findById(teacherId);
-  if (!teacher) {
-    throw new NotFoundException(`Teacher with ID ${teacherId} not found`);
-  }
-
-  // Verify course exists
-  const course = await this.courseModel.findById(courseId);
-  if (!course) {
-    throw new NotFoundException(`Course with ID ${courseId} not found`);
-  }
-
-  // Check if course is actually assigned
-  const courseIndex = teacher.assignedCourses.findIndex(
-    id => id.toString() === courseId
-  );
-  
-  if (courseIndex === -1) {
-    throw new BadRequestException(
-      `Course ${courseId} is not assigned to teacher ${teacherId}`
-    );
-  }
-
-  const session = await this.teacherModel.db.startSession();
-  session.startTransaction();
-
-  try {
-    // Remove course from teacher's array
-    const updatedTeacher = await this.teacherModel.findByIdAndUpdate(
-      teacherId,
-      { $pull: { assignedCourses: courseId } },
-      { new: true, session }
-    );
-
-    // Update course status
-    const updatedCourse = await this.courseModel.findByIdAndUpdate(
-      courseId,
-      { assigned: false },
-      { new: true, session }
-    );
-
-    await session.commitTransaction();
-    return { teacher: updatedTeacher, course: updatedCourse };
-  } catch (error) {
-    await session.abortTransaction();
-    throw new InternalServerErrorException(
-      'Failed to unassign course: ' + error.message
-    );
-  } finally {
-    session.endSession();
-  }
-}
 
   async delete(id: string): Promise<{ message: string }> {
     const teacher = await this.teacherModel.findById(id);
@@ -345,14 +351,14 @@ async removeCourseAssignment(
       }
     }
   }
- 
+
   async validateTeacher(data: { email: string; password: string }) {
     try {
       const teacher = await this.teacherModel.findOne({ email: data.email });
       if (!teacher) return null;
 
       const isMatch = await bcrypt.compare(data.password, teacher.password);
-     console.log(teacher)
+      console.log(teacher);
       return isMatch ? teacher : null;
     } catch (e) {
       console.log(e);

@@ -59,6 +59,10 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
+], Student.prototype, "emergencyContact", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
 ], Student.prototype, "enrollDate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),

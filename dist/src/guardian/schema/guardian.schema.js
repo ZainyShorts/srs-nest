@@ -24,7 +24,9 @@ __decorate([
     __metadata("design:type", String)
 ], Guardian.prototype, "guardianEmail", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: "$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm" }),
+    (0, mongoose_1.Prop)({
+        default: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
+    }),
     __metadata("design:type", String)
 ], Guardian.prototype, "password", void 0);
 __decorate([

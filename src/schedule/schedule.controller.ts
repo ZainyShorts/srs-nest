@@ -7,12 +7,10 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
-import { AuthGuard } from 'src/user/guards/auth.guard';
 
 @Controller('schedule')
 export class ScheduleController {
@@ -46,14 +44,16 @@ export class ScheduleController {
       courseId,
     );
   }
-@Get('by-student')
-async getSchedulesByStudentAndDate(
-  @Query('studentId') studentId: string,
-  @Query('date') date: string,
-) {
-  return this.scheduleService.findSchedulesByStudentIdAndDate(studentId, date);
-}
-
+  @Get('by-student')
+  async getSchedulesByStudentAndDate(
+    @Query('studentId') studentId: string,
+    @Query('date') date: string,
+  ) {
+    return this.scheduleService.findSchedulesByStudentIdAndDate(
+      studentId,
+      date,
+    );
+  }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {

@@ -71,11 +71,11 @@ export class CourseService {
       filter.courseName = { $regex: coursename, $options: 'i' };
     }
 
-    if (active !== undefined) {
+    if (filter.active) {
       filter.active = active;
     }
 
-    if (special !== undefined) {
+    if (filter.special) {
       filter.special = special;
     }
 

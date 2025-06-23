@@ -38,6 +38,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
+], CreateStudentDto.prototype, "emergencyContact", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], CreateStudentDto.prototype, "section", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
@@ -55,7 +60,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "phone", void 0);

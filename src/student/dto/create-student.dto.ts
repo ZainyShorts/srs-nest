@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString, IsDate, Matches, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsDate,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateStudentDto {
   @IsNotEmpty()
@@ -19,6 +26,10 @@ export class CreateStudentDto {
 
   @IsNotEmpty()
   @IsString()
+  emergencyContact: string;
+
+  @IsNotEmpty()
+  @IsString()
   section: string;
 
   @IsNotEmpty()
@@ -33,7 +44,7 @@ export class CreateStudentDto {
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   phone: string;
 
@@ -102,5 +113,4 @@ export class CreateStudentDto {
   @IsNotEmpty()
   @IsString()
   nationality: string; // Nationality of student
-
 }

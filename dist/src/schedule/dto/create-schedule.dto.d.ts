@@ -9,6 +9,7 @@ export declare class CreateScheduleDto {
     section: string;
     note: string;
     teacherId: string;
+    courseId: string;
     dayOfWeek: ScheduleDayDto[];
 }
 export {};

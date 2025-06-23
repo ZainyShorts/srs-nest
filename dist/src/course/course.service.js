@@ -59,10 +59,10 @@ let CourseService = class CourseService {
         if (coursename) {
             filter.courseName = { $regex: coursename, $options: 'i' };
         }
-        if (active !== undefined) {
+        if (filter.active) {
             filter.active = active;
         }
-        if (special !== undefined) {
+        if (filter.special) {
             filter.special = special;
         }
         return this.courseModel.find(filter).populate('departmentId').exec();

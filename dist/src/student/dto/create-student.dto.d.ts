@@ -3,6 +3,7 @@ export declare class CreateStudentDto {
     firstName: string;
     lastName: string;
     class: string;
+    emergencyContact: string;
     section: string;
     gender: string;
     dob: string;
