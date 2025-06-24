@@ -31,6 +31,9 @@ export class Grade {
   @Prop({ required: true })
   section: string; // Example: A B C
 
+  @Prop({ required: true })
+  term: string; // Example: A B C
+
   @Prop({ type: GradeComponent, required: true })
   quiz: GradeComponent;
 

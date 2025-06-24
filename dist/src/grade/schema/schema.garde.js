@@ -50,6 +50,10 @@ __decorate([
     __metadata("design:type", String)
 ], Grade.prototype, "section", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Grade.prototype, "term", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: GradeComponent, required: true }),
     __metadata("design:type", GradeComponent)
 ], Grade.prototype, "quiz", void 0);

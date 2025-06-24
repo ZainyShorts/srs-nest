@@ -13,6 +13,7 @@ export declare class Grade {
     studentId: Student;
     class: string;
     section: string;
+    term: string;
     quiz: GradeComponent;
     midTerm: GradeComponent;
     project: GradeComponent;

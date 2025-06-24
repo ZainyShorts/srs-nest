@@ -8,7 +8,7 @@ export declare class GradeService {
     private readonly CourseModel;
     constructor(GradeModel: Model<GradeDocument>, CourseModel: Model<CourseDocument>);
     create(createDtos: CreateGradeDto[]): Promise<any>;
-    findAll(className?: string, section?: string, courseId?: string, teacherId?: string): Promise<Grade[]>;
+    findAll(className?: string, section?: string, courseId?: string, teacherId?: string, term?: string): Promise<Grade[]>;
     findGradesByStudentAndCourse(studentId: any, courseId: string): Promise<any>;
     findOne(id: string, className?: string, section?: string, courseId?: string, teacherId?: string): Promise<Grade>;
     updateMany(grades: UpdateGradeDto[]): Promise<Grade[]>;

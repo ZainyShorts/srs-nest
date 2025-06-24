@@ -46,6 +46,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateGradeDto.prototype, "section", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateGradeDto.prototype, "term", void 0);
+__decorate([
     (0, class_validator_1.ValidateNested)(),
     (0, class_transformer_1.Type)(() => AssessmentComponentDto),
     __metadata("design:type", AssessmentComponentDto)

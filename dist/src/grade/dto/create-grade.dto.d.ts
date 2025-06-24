@@ -8,6 +8,7 @@ export declare class CreateGradeDto {
     studentId: string;
     class: string;
     section: string;
+    term: string;
     quiz: AssessmentComponentDto;
     midTerm: AssessmentComponentDto;
     project: AssessmentComponentDto;

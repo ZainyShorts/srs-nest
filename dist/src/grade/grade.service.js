@@ -29,6 +29,7 @@ let GradeService = class GradeService {
                 class: createDtos[0].class,
                 section: createDtos[0].section,
                 courseId: createDtos[0].courseId,
+                term: createDtos[0].term,
             });
             if (exists) {
                 throw new common_1.BadRequestException('Grade already exists');
@@ -43,7 +44,7 @@ let GradeService = class GradeService {
             throw new common_1.InternalServerErrorException('Failed to create grade(s)');
         }
     }
-    async findAll(className, section, courseId, teacherId) {
+    async findAll(className, section, courseId, teacherId, term) {
         try {
             const filter = {};
             if (className)
@@ -54,6 +55,8 @@ let GradeService = class GradeService {
                 filter.courseId = courseId;
             if (teacherId)
                 filter.teacherId = teacherId;
+            if (term)
+                filter.term = term;
             return this.GradeModel.find(filter).populate(['studentId']).exec();
         }
         catch (error) {

@@ -25,6 +25,9 @@ export class CreateGradeDto {
   @IsString()
   section: string;
 
+  @IsString()
+  term: string;
+
   @ValidateNested()
   @Type(() => AssessmentComponentDto)
   quiz: AssessmentComponentDto;

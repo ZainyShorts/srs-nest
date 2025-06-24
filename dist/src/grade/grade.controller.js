@@ -23,8 +23,8 @@ let GradeController = class GradeController {
     create(dto) {
         return this.service.create(dto.grades);
     }
-    findAll(className, section, courseId, teacherId) {
-        return this.service.findAll(className, section, courseId, teacherId);
+    findAll(className, section, courseId, teacherId, term) {
+        return this.service.findAll(className, section, courseId, teacherId, term);
     }
     findGradesByStudentAndCourse(courseId, studentId) {
         return this.service.findGradesByStudentAndCourse(studentId, courseId);
@@ -53,8 +53,9 @@ __decorate([
     __param(1, (0, common_1.Query)('section')),
     __param(2, (0, common_1.Query)('courseId')),
     __param(3, (0, common_1.Query)('teacherId')),
+    __param(4, (0, common_1.Query)('term')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], GradeController.prototype, "findAll", null);
 __decorate([

@@ -26,6 +26,7 @@ export class GradeService {
         class: createDtos[0].class,
         section: createDtos[0].section,
         courseId: createDtos[0].courseId,
+        term: createDtos[0].term,
       });
 
       if (exists) {
@@ -47,6 +48,7 @@ export class GradeService {
     section?: string,
     courseId?: string,
     teacherId?: string,
+    term?: string,
   ): Promise<Grade[]> {
     try {
       const filter: any = {};
@@ -55,6 +57,7 @@ export class GradeService {
       if (section) filter.section = section;
       if (courseId) filter.courseId = courseId;
       if (teacherId) filter.teacherId = teacherId;
+      if (term) filter.term = term;
 
       return this.GradeModel.find(filter).populate(['studentId']).exec();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
