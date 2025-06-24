@@ -19,18 +19,187 @@ const mongoose_2 = require("mongoose");
 const bcrypt = require("bcrypt");
 const student_schema_1 = require("./schema/student.schema");
 const guardian_service_1 = require("../guardian/guardian.service");
-const xlsx = require("xlsx");
-const fs = require("fs");
+const XLSX = require("xlsx");
 const guardian_schema_1 = require("../guardian/schema/guardian.schema");
 const schema_attendace_1 = require("../attendance/schema/schema.attendace");
 const course_schema_1 = require("../course/schema/course.schema");
+const mongoose_3 = require("@nestjs/mongoose");
 let StudentService = class StudentService {
-    constructor(studentModel, guardianService, guardianModel, attendanceModel, courseModel) {
+    constructor(studentModel, guardianService, guardianModel, attendanceModel, courseModel, connection) {
         this.studentModel = studentModel;
         this.guardianService = guardianService;
         this.guardianModel = guardianModel;
         this.attendanceModel = attendanceModel;
         this.courseModel = courseModel;
+        this.connection = connection;
+    }
+    calculateGraduationDate(enrollDate) {
+        const date = new Date(enrollDate);
+        date.setFullYear(date.getFullYear() + 5);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    async bulkUpload(file) {
+        const session = await this.connection.startSession();
+        session.startTransaction();
+        try {
+            const workbook = XLSX.readFile(file.path);
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            console.log(rows);
+            const BATCH_SIZE = 100;
+            let insertedCount = 0;
+            let skippedCount = 0;
+            for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+                const batch = rows.slice(i, i + BATCH_SIZE);
+                const result = await this.processBatch(batch, session);
+                insertedCount += result.insertedCount;
+                skippedCount += result.skippedCount;
+            }
+            await session.commitTransaction();
+            return { insertedCount, skippedCount };
+        }
+        catch (error) {
+            await session.abortTransaction();
+            throw new Error(`Bulk upload failed: ${error.message}`);
+        }
+        finally {
+            session.endSession();
+        }
+    }
+    async processBatch(rows, session) {
+        let insertedCount = 0;
+        let skippedCount = 0;
+        const { validStudents, skipped } = await this.prepareStudentData(rows, session);
+        skippedCount += skipped;
+        if (validStudents.length === 0) {
+            return { insertedCount, skippedCount };
+        }
+        const guardianData = validStudents.map((student) => ({
+            guardianName: student.guardianName,
+            guardianEmail: student.guardianEmail,
+            guardianPhone: student.guardianPhone,
+            guardianRelation: student.guardianRelation,
+            guardianProfession: student.guardianProfession,
+        }));
+        const guardianIds = await this.upsertGuardians(guardianData, session);
+        const studentsWithGuardians = validStudents.map((student, index) => ({
+            studentId: student.studentId,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            class: student.class,
+            section: student.section,
+            gender: student.gender,
+            dob: student.dob,
+            email: student.email,
+            phone: student.phone,
+            address: student.address,
+            emergencyContact: student.emergencyContact,
+            enrollDate: student.enrollDate,
+            expectedGraduation: student.expectedGraduation,
+            guardian: guardianIds[index],
+            profilePhoto: 'N/A',
+            transcripts: [],
+            iipFlag: false,
+            honorRolls: false,
+            athletics: false,
+            clubs: '',
+            lunch: '',
+            nationality: '',
+        }));
+        await this.studentModel.insertMany(studentsWithGuardians, { session });
+        insertedCount += studentsWithGuardians.length;
+        return { insertedCount, skippedCount };
+    }
+    async prepareStudentData(rows, session) {
+        const validStudents = [];
+        let skippedCount = 0;
+        const studentEmails = rows.map((row) => row.email).filter(Boolean);
+        const guardianEmails = rows.map((row) => row.guardianEmail).filter(Boolean);
+        const [existingStudents, existingGuardians] = await Promise.all([
+            this.studentModel
+                .find({ email: { $in: studentEmails } }, { email: 1 }, { session })
+                .lean(),
+            this.guardianModel
+                .find({ guardianEmail: { $in: guardianEmails } }, { guardianEmail: 1 }, { session })
+                .lean(),
+        ]);
+        const existingStudentEmails = new Set(existingStudents.map((s) => s.email));
+        const existingGuardianEmails = new Set(existingGuardians.map((g) => g.guardianEmail));
+        for (const row of rows) {
+            if (existingStudentEmails.has(row.email)) {
+                skippedCount++;
+                continue;
+            }
+            if (existingGuardianEmails.has(row.guardianEmail)) {
+                skippedCount++;
+                continue;
+            }
+            if (row.email === row.guardianEmail) {
+                skippedCount++;
+                continue;
+            }
+            if (!row.email ||
+                !row.guardianEmail ||
+                !row.enrollDate ||
+                !row.studentId) {
+                skippedCount++;
+                continue;
+            }
+            const studentDto = {
+                studentId: row.studentId,
+                firstName: row.firstName,
+                lastName: row.lastName,
+                class: row.Grade,
+                section: row.Section,
+                gender: row.Gender,
+                dob: row.DOB,
+                email: row.email,
+                phone: row.phone,
+                address: row.address,
+                emergencyContact: row.emergencyContact,
+                enrollDate: row.enrollDate,
+                expectedGraduation: this.calculateGraduationDate(row.enrollDate),
+                guardianName: row.guardianName,
+                guardianEmail: row.guardianEmail,
+                guardianPhone: row.guardianPhone,
+                guardianRelation: row.guardianRelation,
+                guardianProfession: row.guardianProfession,
+            };
+            validStudents.push(studentDto);
+        }
+        return { validStudents, skipped: skippedCount };
+    }
+    async upsertGuardians(guardians, session) {
+        if (guardians.length === 0)
+            return [];
+        const bulkOps = guardians.map((guardian) => ({
+            updateOne: {
+                filter: { guardianEmail: guardian.guardianEmail },
+                update: {
+                    $setOnInsert: {
+                        guardianName: guardian.guardianName,
+                        guardianEmail: guardian.guardianEmail,
+                        guardianPhone: guardian.guardianPhone,
+                        guardianRelation: guardian.guardianRelation,
+                        guardianProfession: guardian.guardianProfession,
+                        guardianPhoto: 'N/A',
+                        password: '$2b$10$1VlR8HWa.Pzyo96BdwL0H.3Hdp2WF9oRX1W9lEF4EohpCWbq70jKm',
+                    },
+                },
+                upsert: true,
+            },
+        }));
+        await this.guardianModel.bulkWrite(bulkOps, { session });
+        const guardianEmails = guardians.map((g) => g.guardianEmail);
+        const guardianDocs = await this.guardianModel
+            .find({ guardianEmail: { $in: guardianEmails } }, { _id: 1, guardianEmail: 1 }, { session })
+            .lean();
+        const emailToIdMap = new Map(guardianDocs.map((g) => [g.guardianEmail, g._id]));
+        return guardians.map((g) => emailToIdMap.get(g.guardianEmail));
     }
     async create(createStudentDto) {
         const { guardianName, guardianEmail, guardianPhone, guardianRelation, guardianPhoto, guardianProfession, studentId, email, ...studentData } = createStudentDto;
@@ -122,10 +291,13 @@ let StudentService = class StudentService {
     }
     async studentCount(className, section) {
         try {
+            console.log('className', className);
+            console.log('section', section);
             const count = await this.studentModel.countDocuments({
                 class: className,
                 section: section,
             });
+            console.log('ount', count);
             return count;
         }
         catch (error) {
@@ -168,97 +340,6 @@ let StudentService = class StudentService {
         return this.studentModel
             .findByIdAndUpdate(id, studentData, { new: true })
             .populate('guardian');
-    }
-    async importStudents(filePath) {
-        try {
-            const workbook = xlsx.readFile(filePath);
-            const sheetName = workbook.SheetNames[0];
-            const students = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-            if (students.length > 1000) {
-                throw new common_1.BadRequestException('Limit exceeded: Maximum 1000 records allowed at a time.');
-            }
-            const studentIds = students.map((s) => s.studentId);
-            const emails = students.map((s) => s.email);
-            const guardianEmails = students
-                .filter((s) => s.guardianEmail)
-                .map((s) => s.guardianEmail);
-            const existingStudents = await this.studentModel.find({
-                $or: [{ studentId: { $in: studentIds } }, { email: { $in: emails } }],
-            });
-            const existingGuardians = await this.guardianModel.find({
-                guardianEmail: { $in: guardianEmails },
-            });
-            const existingStudentsBystudentId = new Map(existingStudents.map((s) => [s.studentId, s]));
-            const existingStudentsByEmail = new Map(existingStudents.map((s) => [s.email, s]));
-            const existingGuardiansByEmail = new Map(existingGuardians.map((g) => [g.guardianEmail, g]));
-            const validStudents = [];
-            for (const [i, student] of students.entries()) {
-                const { studentId, email, guardianEmail } = student;
-                const rowNumber = i + 2;
-                if (email === guardianEmail) {
-                    return {
-                        status: common_1.HttpStatus.CONFLICT,
-                        msg: `Row ${rowNumber}: Student email "${email}" cannot be the same as guardian email.`,
-                    };
-                }
-                if (existingStudentsBystudentId.has(studentId)) {
-                    const existingStudent = existingStudentsBystudentId.get(studentId);
-                    return {
-                        status: common_1.HttpStatus.CONFLICT,
-                        msg: `Row ${rowNumber}: Roll number "${studentId}" is already taken by student ${existingStudent.firstName} ${existingStudent.lastName}.`,
-                    };
-                }
-                if (existingStudentsByEmail.has(email)) {
-                    const existingStudent = existingStudentsByEmail.get(email);
-                    return {
-                        status: common_1.HttpStatus.CONFLICT,
-                        msg: `Row ${rowNumber}: Student email "${email}" is already registered with ${existingStudent.firstName} ${existingStudent.lastName}.`,
-                    };
-                }
-                let guardian;
-                if (existingGuardiansByEmail.has(guardianEmail)) {
-                    guardian = existingGuardiansByEmail.get(guardianEmail);
-                }
-                else {
-                    guardian = await this.guardianModel.create({
-                        guardianName: student.guardianName,
-                        guardianEmail: student.guardianEmail,
-                        guardianPhone: student.guardianPhone,
-                        guardianRelation: student.guardianRelation,
-                        guardianProfession: student.guardianProfession,
-                        guardianPhoto: student.guardianPhoto,
-                    });
-                    existingGuardiansByEmail.set(guardianEmail, guardian);
-                }
-                student.guardian = guardian._id;
-                validStudents.push(student);
-            }
-            if (validStudents.length === 0) {
-                throw new common_1.BadRequestException('No valid records to insert. All entries already exist.');
-            }
-            await this.studentModel.insertMany(validStudents);
-            return {
-                message: `${validStudents.length} students imported successfully.`,
-            };
-        }
-        catch (error) {
-            console.error('Error importing students:', error);
-            if (error instanceof common_1.ConflictException) {
-                return {
-                    status: common_1.HttpStatus.CONFLICT,
-                    msg: error.message,
-                };
-            }
-            throw new common_1.BadRequestException(error.message);
-        }
-        finally {
-            if (filePath) {
-                fs.unlink(filePath, (err) => {
-                    if (err)
-                        console.error('Error deleting file:', err);
-                });
-            }
-        }
     }
     async getAttendanceByStudentId(studentObjectId) {
         const objectId = new mongoose_2.Types.ObjectId(studentObjectId);
@@ -337,10 +418,12 @@ exports.StudentService = StudentService = __decorate([
     __param(2, (0, mongoose_1.InjectModel)(guardian_schema_1.Guardian.name)),
     __param(3, (0, mongoose_1.InjectModel)(schema_attendace_1.Attendance.name)),
     __param(4, (0, mongoose_1.InjectModel)(course_schema_1.Course.name)),
+    __param(5, (0, mongoose_3.InjectConnection)()),
     __metadata("design:paramtypes", [mongoose_2.Model,
         guardian_service_1.GuardianService,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        mongoose_2.Connection])
 ], StudentService);
 //# sourceMappingURL=student.service.js.map

@@ -30,7 +30,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateGuardianDto.prototype, "guardianPhone", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateGuardianDto.prototype, "guardianPhoto", void 0);

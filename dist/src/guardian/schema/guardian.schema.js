@@ -42,7 +42,7 @@ __decorate([
     __metadata("design:type", String)
 ], Guardian.prototype, "guardianProfession", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: true, default: 'N/A' }),
     __metadata("design:type", String)
 ], Guardian.prototype, "guardianPhoto", void 0);
 exports.Guardian = Guardian = __decorate([

@@ -72,7 +72,7 @@ export class CreateStudentDto {
   @IsString()
   guardianPhone: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   @IsString()
   guardianPhoto: string;
 
@@ -84,7 +84,7 @@ export class CreateStudentDto {
   @IsString()
   guardianProfession: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   @IsString()
   profilePhoto: string;
 

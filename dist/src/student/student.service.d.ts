@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, Connection } from 'mongoose';
 import { Student } from './schema/student.schema';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { GuardianService } from '../guardian/guardian.service';
@@ -7,13 +7,23 @@ import { Guardian } from '../guardian/schema/guardian.schema';
 import { ResponseDto } from 'src/dto/response.dto';
 import { Attendance } from 'src/attendance/schema/schema.attendace';
 import { Course } from 'src/course/schema/course.schema';
+import { UploadedFileType } from 'utils/multer.config';
 export declare class StudentService {
     private studentModel;
     private readonly guardianService;
     private guardianModel;
     private attendanceModel;
     private courseModel;
-    constructor(studentModel: Model<Student>, guardianService: GuardianService, guardianModel: Model<Guardian>, attendanceModel: Model<Attendance>, courseModel: Model<Course>);
+    private readonly connection;
+    constructor(studentModel: Model<Student>, guardianService: GuardianService, guardianModel: Model<Guardian>, attendanceModel: Model<Attendance>, courseModel: Model<Course>, connection: Connection);
+    calculateGraduationDate(enrollDate: string): string;
+    bulkUpload(file: UploadedFileType): Promise<{
+        insertedCount: number;
+        skippedCount: number;
+    }>;
+    private processBatch;
+    private prepareStudentData;
+    private upsertGuardians;
     create(createStudentDto: CreateStudentDto): Promise<Student | ResponseDto>;
     findById(id: string): Promise<Student>;
     findAll(page?: number, limit?: number, studentId?: string, startDate?: string, endDate?: string, className?: string): Promise<{
@@ -33,7 +43,6 @@ export declare class StudentService {
         message: string;
     }>;
     update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student | ResponseDto>;
-    importStudents(filePath: string): Promise<any>;
     getAttendanceByStudentId(studentObjectId: string): Promise<{
         courseId: string;
         courseName: string;

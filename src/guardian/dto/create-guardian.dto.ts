@@ -13,7 +13,7 @@ export class CreateGuardianDto {
   @IsString()
   guardianPhone: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   @IsString()
   guardianPhoto: string;
 
@@ -24,8 +24,4 @@ export class CreateGuardianDto {
   @IsNotEmpty()
   @IsString()
   guardianProfession: string;
-
-
 }
-
-

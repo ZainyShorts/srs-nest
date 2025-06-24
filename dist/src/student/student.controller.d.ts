@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { Student } from './schema/student.schema';
@@ -7,6 +8,11 @@ import { ResponseDto } from 'src/dto/response.dto';
 export declare class StudentController {
     private readonly studentService;
     constructor(studentService: StudentService);
+    calculateGraduationDate(enrollDate: string): string;
+    bulk(file: UploadedFileType): Promise<{
+        status: HttpStatus;
+        msg: string;
+    }>;
     getAttendanceByStudentId(studentId: string): Promise<{
         courseId: string;
         courseName: string;
@@ -35,5 +41,4 @@ export declare class StudentController {
         message: string;
     }>;
     update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student | ResponseDto>;
-    importStudents(file: UploadedFileType): Promise<any>;
 }

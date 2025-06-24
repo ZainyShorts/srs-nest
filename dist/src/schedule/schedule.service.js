@@ -248,9 +248,11 @@ let ScheduleService = class ScheduleService {
     async getTotalStudentsAssignedToTeacher(id) {
         let totalStudents = 0;
         try {
+            console.log('id', id);
             const scheduleClasses = await this.scheduleModel
                 .find({ teacherId: id })
                 .exec();
+            console.log(scheduleClasses);
             for (const room of scheduleClasses) {
                 const students = await this.studentService.studentCount(room.className, room.section);
                 totalStudents += students;

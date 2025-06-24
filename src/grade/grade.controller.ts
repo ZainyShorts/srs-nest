@@ -31,7 +31,7 @@ export class GradeController {
     @Query('teacherId') teacherId: string,
   ) {
     return this.service.findAll(className, section, courseId, teacherId);
-  } 
+  }
   @Get('student-course')
   findGradesByStudentAndCourse(
     @Query('courseId') courseId: string,

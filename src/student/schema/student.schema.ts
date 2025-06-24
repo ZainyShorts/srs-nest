@@ -51,7 +51,7 @@ export class Student extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Guardian', required: false })
   guardian: Guardian;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 'N/A' })
   profilePhoto: string; // Store URL of the photo
 
   @Prop({ required: false })

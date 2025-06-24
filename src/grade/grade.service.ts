@@ -4,22 +4,22 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Grade, GradeDocument } from './schema/schema.garde'; 
-import { Course , CourseDocument } from 'src/course/schema/course.schema';
+import { Grade, GradeDocument } from './schema/schema.garde';
+import { Course, CourseDocument } from 'src/course/schema/course.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateGradeDto } from './dto/update-grade.dto'; 
+import { UpdateGradeDto } from './dto/update-grade.dto';
 import { CreateGradeDto } from './dto/create-grade.dto';
 
 @Injectable()
 export class GradeService {
   constructor(
     @InjectModel(Grade.name)
-    private readonly  GradeModel: Model<GradeDocument>, 
-     @InjectModel(Course.name)
+    private readonly GradeModel: Model<GradeDocument>,
+    @InjectModel(Course.name)
     private readonly CourseModel: Model<CourseDocument>,
   ) {}
-   
+
   async create(createDtos: CreateGradeDto[]): Promise<any> {
     try {
       const exists = await this.GradeModel.findOne({
@@ -46,7 +46,7 @@ export class GradeService {
     className?: string,
     section?: string,
     courseId?: string,
-    teacherId?: string, 
+    teacherId?: string,
   ): Promise<Grade[]> {
     try {
       const filter: any = {};
@@ -61,37 +61,44 @@ export class GradeService {
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve grades');
     }
-  } 
- async findGradesByStudentAndCourse(
-  studentId: any,
-  courseId: string,
-): Promise<any> {
-  try {
-    const grade = await this.GradeModel.findOne({ studentId, courseId }).exec(); 
-     const course = await this.CourseModel.findById(courseId).select('courseName').exec();
-    const courseName = course?.courseName || 'Unknown';
-
-     if (!grade) {
-      throw new NotFoundException('Grade not found for given student and course');
-    }
-
-    return {
-      studentId: grade.studentId,
-      courseId: grade.courseId,
-      teacherId: grade.teacherId, 
-      courseName,
-      quiz: grade.quiz,
-      midTerm: grade.midTerm,
-      project: grade.project,
-      finalTerm: grade.finalTerm,
-      overAll: grade.overAll,
-    };
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to retrieve grades by student and course');
   }
-}
+  async findGradesByStudentAndCourse(
+    studentId: any,
+    courseId: string,
+  ): Promise<any> {
+    try {
+      const grade = await this.GradeModel.findOne({
+        studentId,
+        courseId,
+      }).exec();
+      const course = await this.CourseModel.findById(courseId)
+        .select('courseName')
+        .exec();
+      const courseName = course?.courseName || 'Unknown';
 
+      if (!grade) {
+        throw new NotFoundException(
+          'Grade not found for given student and course',
+        );
+      }
 
+      return {
+        studentId: grade.studentId,
+        courseId: grade.courseId,
+        teacherId: grade.teacherId,
+        courseName,
+        quiz: grade.quiz,
+        midTerm: grade.midTerm,
+        project: grade.project,
+        finalTerm: grade.finalTerm,
+        overAll: grade.overAll,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to retrieve grades by student and course',
+      );
+    }
+  }
 
   async findOne(
     id: string,

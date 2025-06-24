@@ -6,6 +6,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { StudentService } from 'src/student/student.service';
 import * as moment from 'moment';
+import { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class ScheduleService {
@@ -307,9 +308,11 @@ export class ScheduleService {
   async getTotalStudentsAssignedToTeacher(id: string) {
     let totalStudents = 0;
     try {
+      console.log('id', id);
       const scheduleClasses = await this.scheduleModel
         .find({ teacherId: id })
         .exec();
+      console.log(scheduleClasses);
 
       for (const room of scheduleClasses) {
         const students = await this.studentService.studentCount(

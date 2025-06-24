@@ -62,8 +62,13 @@ let GradeService = class GradeService {
     }
     async findGradesByStudentAndCourse(studentId, courseId) {
         try {
-            const grade = await this.GradeModel.findOne({ studentId, courseId }).exec();
-            const course = await this.CourseModel.findById(courseId).select('courseName').exec();
+            const grade = await this.GradeModel.findOne({
+                studentId,
+                courseId,
+            }).exec();
+            const course = await this.CourseModel.findById(courseId)
+                .select('courseName')
+                .exec();
             const courseName = course?.courseName || 'Unknown';
             if (!grade) {
                 throw new common_1.NotFoundException('Grade not found for given student and course');

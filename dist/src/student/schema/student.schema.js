@@ -79,7 +79,7 @@ __decorate([
     __metadata("design:type", guardian_schema_1.Guardian)
 ], Student.prototype, "guardian", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: true, default: 'N/A' }),
     __metadata("design:type", String)
 ], Student.prototype, "profilePhoto", void 0);
 __decorate([

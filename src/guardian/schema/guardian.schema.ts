@@ -23,7 +23,7 @@ export class Guardian extends Document {
   @Prop({ required: true })
   guardianProfession: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 'N/A' })
   guardianPhoto: string;
 }
 

@@ -95,7 +95,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "guardianPhone", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "guardianPhoto", void 0);
@@ -110,7 +109,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "guardianProfession", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStudentDto.prototype, "profilePhoto", void 0);

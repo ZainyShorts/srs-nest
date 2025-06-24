@@ -19,9 +19,39 @@ const create_student_dto_1 = require("./dto/create-student.dto");
 const update_student_dto_1 = require("./dto/update-student.dto");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_config_1 = require("../../utils/multer.config");
+const fs = require("fs");
 let StudentController = class StudentController {
     constructor(studentService) {
         this.studentService = studentService;
+    }
+    calculateGraduationDate(enrollDate) {
+        const enrollmentYear = new Date(enrollDate).getFullYear();
+        const graduationYear = enrollmentYear + 5;
+        return `${graduationYear}`;
+    }
+    async bulk(file) {
+        let insertedCount = 0;
+        let skippedCount = 0;
+        try {
+            const result = await this.studentService.bulkUpload(file);
+            insertedCount = result.insertedCount;
+            skippedCount = result.skippedCount;
+            return {
+                status: common_1.HttpStatus.OK,
+                msg: `inserted ${insertedCount} students and skipped ${skippedCount} records due to conflicts.`,
+            };
+        }
+        catch (error) {
+            return {
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                msg: 'An error occurred during the bulk upload process.',
+            };
+        }
+        finally {
+            if (file && file.path) {
+                fs.unlinkSync(file.path);
+            }
+        }
     }
     async getAttendanceByStudentId(studentId) {
         if (!studentId) {
@@ -47,14 +77,16 @@ let StudentController = class StudentController {
     async update(id, updateStudentDto) {
         return this.studentService.update(id, updateStudentDto);
     }
-    async importStudents(file) {
-        if (!file) {
-            throw new Error('File is required');
-        }
-        return this.studentService.importStudents(file.path);
-    }
 };
 exports.StudentController = StudentController;
+__decorate([
+    (0, common_1.Post)('bulk-upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', multer_config_1.multerOptionsForXlxs)),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], StudentController.prototype, "bulk", null);
 __decorate([
     (0, common_1.Get)('attendance'),
     __param(0, (0, common_1.Query)('studentId')),
@@ -111,14 +143,6 @@ __decorate([
     __metadata("design:paramtypes", [String, update_student_dto_1.UpdateStudentDto]),
     __metadata("design:returntype", Promise)
 ], StudentController.prototype, "update", null);
-__decorate([
-    (0, common_1.Post)('import'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', multer_config_1.multerOptionsForXlxs)),
-    __param(0, (0, common_1.UploadedFile)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], StudentController.prototype, "importStudents", null);
 exports.StudentController = StudentController = __decorate([
     (0, common_1.Controller)('student'),
     __metadata("design:paramtypes", [student_service_1.StudentService])
